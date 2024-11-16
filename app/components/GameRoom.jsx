@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Progress } from "@/components/ui/progress";
 import { Shield, Lock, Mail, AlertTriangle } from "lucide-react";
-import { redirect } from "next/navigation";
+import { redirect , useRouter } from "next/navigation";
 
 const BACKEND_URL = "http://localhost:8080";
 
@@ -12,11 +12,8 @@ export default function GameRoom({ data }) {
   const [timeRemaining, setTimeRemaining] = useState(100);
   const [gameStarted, setGameStarted] = useState(false);
 
-  const router = {
-    push: (url) => {
-      window.location
-    }
-  }
+  const channel = new BroadcastChannel("navigation");
+  const router = useRouter();
 
   const levels = [
     { id: 1, name: "Level 1" },
@@ -24,6 +21,25 @@ export default function GameRoom({ data }) {
     { id: 3, name: "Level 3" },
     { id: 4, name: "Level 4" },
   ];
+
+  useEffect(() => {
+    const channel = new BroadcastChannel("navigation");
+    console.log("BroadcastChannel initialized"); // Debug log
+  
+    const handleMessage = (message) => {
+      console.log("Message received:", message.data); // Debug log
+      if (message.data.navigateTo) {
+        router.push(message.data.navigateTo);
+      }
+    };
+  
+    channel.addEventListener("message", handleMessage);
+  
+    return () => {
+      console.log("BroadcastChannel closed"); // Debug log
+      channel.close();
+    };
+  }, []);
 
   useEffect(() => {
     console.log("Room data:", data);
@@ -45,11 +61,12 @@ export default function GameRoom({ data }) {
     fetch(`${BACKEND_URL}/room/${data.id}/start`, {
       method: "POST",
     });
+    const targetURL = `/room/${data.id}/phishing`;
     setGameStarted(true);
     setTimeRemaining(100);
     console.log("Game started, routing...");
-    router.push(`/room/${data.id}/phishing`);
-    redirect(`/room/${data.id}/phishing`);
+    channel.postMessage({ navigateTo: targetURL });
+    router.push(targetURL);
   };
 
   useEffect(() => {
