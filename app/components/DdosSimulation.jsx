@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { Switch } from '@/components/ui/switch';
-import { AlertCircle, Shield, Zap, Server } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { Switch } from "@/components/ui/switch";
+import { Zap, Server } from "lucide-react";
 
 const MAX_ATTACK_STRENGTH = 100;
 const MAX_DEFENSE_STRENGTH = 80;
@@ -30,7 +30,7 @@ export default function DDoSSimulation() {
   const updateServerHealth = () => {
     const damage = Math.max(0, attackStrength - defenseStrength);
     const healthChange = Math.max(0, serverHealth - damage / 10);
-    if (healthChange < serverHealth) logEvent('Server took damage!');
+    if (healthChange < serverHealth) logEvent("Server took damage!");
     setServerHealth(healthChange);
   };
 
@@ -41,7 +41,7 @@ export default function DDoSSimulation() {
         setElapsedTime((prev) => prev + 1);
         updateServerHealth();
 
-        // Simulated attack pattern (hardcoded)
+        // Simulated attack pattern
         const timePercentage = (elapsedTime / SIMULATION_DURATION) * 100;
         if (timePercentage < 20) {
           setAttackStrength(20);
@@ -55,13 +55,13 @@ export default function DDoSSimulation() {
           setAttackStrength(70);
         }
 
-        // Simulated defense response (hardcoded)
+        // Simulated defense response
         const activeDefenses = Object.values(defenses).filter(Boolean).length;
         setDefenseStrength(20 * activeDefenses);
       }, 1000);
     } else if (elapsedTime >= SIMULATION_DURATION) {
       setIsSimulationRunning(false);
-      logEvent('Simulation ended!');
+      logEvent("Simulation ended!");
     }
     return () => clearInterval(interval);
   }, [isSimulationRunning, elapsedTime, defenses]);
@@ -69,7 +69,7 @@ export default function DDoSSimulation() {
   const toggleDefense = (defense) => {
     setDefenses((prev) => {
       const updated = { ...prev, [defense]: !prev[defense] };
-      logEvent(`${defense} ${updated[defense] ? 'activated' : 'deactivated'}`);
+      logEvent(`${defense} ${updated[defense] ? "activated" : "deactivated"}`);
       return updated;
     });
   };
@@ -79,7 +79,7 @@ export default function DDoSSimulation() {
     setServerHealth(100);
     setElapsedTime(0);
     setEventLog([]);
-    logEvent('Simulation started!');
+    logEvent("Simulation started!");
   };
 
   const resetSimulation = () => {
@@ -90,12 +90,14 @@ export default function DDoSSimulation() {
     setElapsedTime(0);
     setDefenses({ firewall: false, loadBalancer: false, trafficFilter: false });
     setEventLog([]);
-    logEvent('Simulation reset!');
+    logEvent("Simulation reset!");
   };
 
   return (
     <div className="min-h-screen bg-gray-900 text-green-500 p-6 font-mono">
-      <h1 className="text-3xl font-bold mb-6 text-center">DDoS Attack Simulation</h1>
+      <h1 className="text-3xl font-bold mb-6 text-center">
+        DDoS Attack Simulation
+      </h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Attack Dashboard */}
@@ -107,12 +109,12 @@ export default function DDoSSimulation() {
                 <span>Attack Strength</span>
                 <span>{attackStrength}%</span>
               </div>
-              <Progress value={attackStrength} className="h-2 bg-gray-700 rounded">
+              <div className="relative h-2 bg-gray-700 rounded">
                 <div
                   className={`absolute h-full rounded bg-red-500 transition-all`}
                   style={{ width: `${attackStrength}%` }}
                 />
-              </Progress>
+              </div>
             </div>
             <div className="flex items-center justify-between">
               <span>Bots</span>
@@ -121,7 +123,7 @@ export default function DDoSSimulation() {
                   <Zap
                     key={i}
                     className={`inline-block w-4 h-4 ${
-                      i < attackStrength / 20 ? 'text-red-500' : 'text-gray-600'
+                      i < attackStrength / 20 ? "text-red-500" : "text-gray-600"
                     }`}
                   />
                 ))}
@@ -139,20 +141,36 @@ export default function DDoSSimulation() {
                 <span>Defense Strength</span>
                 <span>{defenseStrength}%</span>
               </div>
-              <Progress value={defenseStrength} className="h-2 bg-gray-700 rounded">
+              <div className="relative h-2 bg-gray-700 rounded">
                 <div
                   className={`absolute h-full rounded bg-blue-500 transition-all`}
                   style={{ width: `${defenseStrength}%` }}
                 />
-              </Progress>
+              </div>
             </div>
             {Object.entries(defenses).map(([defense, isActive]) => (
               <div key={defense} className="flex items-center justify-between">
-                <label className="capitalize">{defense.replace(/([A-Z])/g, ' $1').trim()}</label>
+                <label
+                  className="capitalize text-green-500"
+                  htmlFor={`switch-${defense}`}
+                >
+                  {defense.replace(/([A-Z])/g, " $1").trim()}
+                </label>
                 <Switch
+                  id={`switch-${defense}`}
                   checked={isActive}
-                  onCheckedChange={() => toggleDefense(defense)}
-                  disabled={isSimulationRunning}
+                  onCheckedChange={() => {
+                    if (!isSimulationRunning) {
+                      toggleDefense(defense);
+                    } else {
+                      logEvent(
+                        `Cannot toggle ${defense} while simulation is running.`
+                      );
+                    }
+                  }}
+                  className={`relative inline-flex items-center h-6 rounded-full w-12 transition-all ${
+                    isActive ? "bg-blue-500" : "bg-gray-500"
+                  }`}
                 />
               </div>
             ))}
@@ -168,26 +186,37 @@ export default function DDoSSimulation() {
                 <span>Server Health</span>
                 <span>{serverHealth.toFixed(2)}%</span>
               </div>
-              <Progress value={serverHealth} className="h-2 bg-gray-700 rounded">
+              <div className="relative h-2 bg-gray-700 rounded">
                 <div
                   className={`absolute h-full rounded ${
-                    serverHealth > 50 ? 'bg-green-500' : 'bg-red-500'
+                    serverHealth > 50 ? "bg-green-500" : "bg-red-500"
                   } transition-all`}
                   style={{ width: `${serverHealth}%` }}
                 />
-              </Progress>
+              </div>
             </div>
             <div className="flex items-center justify-center">
               <Server
-                className={`w-16 h-16 ${serverHealth > 50 ? 'text-green-500' : 'text-red-500'}`}
+                className={`w-16 h-16 ${
+                  serverHealth > 50 ? "text-green-500" : "text-red-500"
+                }`}
               />
             </div>
             <div>
               <div className="flex justify-between mb-2">
                 <span>Simulation Progress</span>
-                <span>{elapsedTime}/{SIMULATION_DURATION}s</span>
+                <span>
+                  {elapsedTime}/{SIMULATION_DURATION}s
+                </span>
               </div>
-              <Progress value={(elapsedTime / SIMULATION_DURATION) * 100} className="h-2" />
+              <div className="relative h-2 bg-gray-700 rounded">
+                <div
+                  className="absolute h-full bg-green-500 rounded transition-all"
+                  style={{
+                    width: `${(elapsedTime / SIMULATION_DURATION) * 100}%`,
+                  }}
+                />
+              </div>
             </div>
           </div>
         </div>

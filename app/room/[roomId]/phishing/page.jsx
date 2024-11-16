@@ -10,36 +10,114 @@ import { v4 as uuidv4 } from "uuid";
 
 const newMails = [
   {
-    sender: "john.doe@example.com",
-    subject: "Meeting Reminder",
-    body: "Don't forget our meeting scheduled for tomorrow at 10 AM.",
-    phish_reason: "",
+    "sender": "john.doe@example.com",
+    "subject": "Meeting Reminder",
+    "body": "Don't forget our meeting scheduled for tomorrow at 10 AM.",
+    "phish_reason": ""
   },
   {
-    sender: "googleHR@gmail.com",
-    subject: "Application Update",
-    body: "We've decided to move you forward, click this link to proceed: https://interview_process.com",
-    phish_reason: "Shady sender address and content",
+    "sender": "googleHR@gmail.com",
+    "subject": "Application Update",
+    "body": "We've decided to move you forward, click this link to proceed: https://interview_process.com",
+    "phish_reason": "Shady expeditor address and content"
   },
   {
-    sender: "team@codeinvaders.com",
-    subject: "Welcome to CodeInvaders",
-    body: "Thank you for joining CodeInvaders. We're thrilled to have you on board!",
-    phish_reason: "",
+    "sender": "team@codeinvaders.com",
+    "subject": "Welcome to CodeInvaders",
+    "body": "Thank you for joining CodeInvaders. We're thrilled to have you on board!",
+    "phish_reason" : ""
   },
   {
-    sender: "finances@bcr.ro",
-    subject: "Thank you for your loyalty",
-    body: "Good news! Access this link to be able to enjoy 1000 euro added to your balance! https://get_my_money.ro",
-    phish_reason: "Suspicious content, seems too good to be true, eh?",
+    "sender": "finances@bcr.ro",
+    "subject": "Thank you for your loyalty",
+    "body": "Good news! Access this link to be able to enjoy 1000 euro added to your balance! https://get_my_money.ro",
+    "phish_reason": "Suspicious content, seems too good to be true, eh?"
   },
   {
-    sender: "rewards@emag.com",
-    subject: "Congratulations!",
-    body: "You have just been selected as the winner of our giveaway: A promo code for 50% off on your next order! Redeem it here: https://giveaway_reward@emag.com.",
-    phish_reason: "Poor grammar, suspicious activity",
+    "sender": "rewards@emag.com",
+    "subject": "Conggratulations!",
+    "body": "you Have just been selected as the winner of our giveaaway: A promo code for 50% off on youur next Order!. Redeem it here: https://giveaway_reward@emag.com.",
+    "phish_reason": "Poor grammar, suspicious activity"
   },
-];
+  {
+    "sender": "orders@emag.com",
+    "subject": "Order update",
+    "body": "Your order has been packed",
+    "phish_reason": ""
+  },
+  {
+    "sender": "recruitment@cloudflight.com",
+    "subject": "Your job application",
+    "body": "We received your application and are carefully reviewing it. We will keep in touch",
+    "phish_reason": ""
+  },
+  {
+    "sender": "rewards@fashion.com",
+    "subject": "Conggratulations!",
+    "body": "you Have just been selected as the winner of our giveaaway: A promo code for 80% off on youur next Order!. Redeem it here: https://giveaway_reward@emag.com.",
+    "phish_reason": "Poor grammar, suspicious activity"
+  },
+  {
+    "sender": "support@banksecure.com",
+    "subject": "Urgent: Your Account is on Hold",
+    "body": "Dear user, We have detected suspicious activity on your account. Please click here immediately to verify your identity: https://verifyaccount_bank.com.",
+    "phish_reason": "Urgent tone, suspicious link, generic greeting"
+  },
+  {
+    "sender": "deals@electromart.com",
+    "subject": "Congratulations! You Won a Free iPhone!",
+    "body": "You are the lucky winner of our iPhone giveaway! Click here to claim your prize: http://iphone_giveaway.com.",
+    "phish_reason": "Too good to be true, suspicious link"
+  },
+  {
+    "sender": "info@legittravel.com",
+    "subject": "Enjoy 10% off Your Next Vacation Booking",
+    "body": "Dear valued customer, As a thank you for being with us, enjoy 10% off on your next booking with code TRAVEL10. Redeem here: https://legittravel.com/offers.",
+    "phish_reason": ""
+  },
+  {
+    "sender": "admin@securityalert-mail.com",
+    "subject": "Immediate Action Required: Account Breach Detected",
+    "body": "We have noticed unusual login attempts on your account. To protect your data, click the link to secure your account: https://account-protect@secure-mail.com.",
+    "phish_reason": "Scare tactics, suspicious link, generic sender"
+  },
+  {
+    "sender": "deals@fashionhub.com",
+    "subject": "Exclusive Offer: 50% Off for a Limited Time!",
+    "body": "Shop now and enjoy a 50% discount on all our items. No gimmicks, just use the code FALL50 at checkout: https://fashionhub.com/shop.",
+    "phish_reason": ""
+  },
+  {
+    "sender": "rewards@winbigprizes.com",
+    "subject": "You’ve Won Big! Claim Your $1000 Gift Card Now",
+    "body": "Click here to claim your $1000 gift card: http://winbigprizes-gift.com. Hurry, time is running out!",
+    "phish_reason": "Excessive urgency, suspicious link"
+  },
+  {
+    "sender": "customer-care@onlinebank.com",
+    "subject": "Verify Your Account Now or It Will Be Suspended",
+    "body": "Dear user, We noticed suspicious activity in your account. Please verify your details immediately to prevent suspension: https://onlinebank-verify.com.",
+    "phish_reason": "Urgent tone, generic greeting, fake link"
+  },
+  {
+    "sender": "promotions@electronicsworld.com",
+    "subject": "Flash Sale: 30% Off on All Electronics",
+    "body": "Don’t miss our limited-time offer! Enjoy 30% off sitewide. Use the promo code TECH30 at checkout: https://electronicsworld.com.",
+    "phish_reason": ""
+  },
+  {
+    "sender": "noreply@winnersclub.com",
+    "subject": "You Have Won A Free Vacation! Confirm Now",
+    "body": "Congratulations! You've won a free vacation. Click here to book your trip: http://winnersclub-freevacation.com.",
+    "phish_reason": "Unbelievable offer, suspicious link"
+  },
+  {
+    "sender": "offers@beautyco.com",
+    "subject": "Beauty Sale! 25% Off All Skincare Products",
+    "body": "Shop your favorite skincare items at a discount. Use code BEAUTY25 to save: https://beautyco.com/shop.",
+    "phish_reason": ""
+  }
+]
 
 export default function PhishingDetector() {
   const [currentEmail, setCurrentEmail] = useState(null);

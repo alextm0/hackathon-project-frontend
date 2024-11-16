@@ -26,8 +26,8 @@ function MainPageComponent() {
     console.log("The room id is", roomId.roomId);
     setRoomCode(roomId.roomId)
     console.log(`Redirecting to room with code: ${roomId.roomId}`);
-    router.push(`/room/${roomData.roomId}`);
-    redirect(`/room/${roomId.roomId}`);
+    if(roomId.roomId)
+      redirect(`/room/${roomId.roomId}`);
   }
 
   function handleJoinRoom() {
@@ -36,6 +36,13 @@ function MainPageComponent() {
       return;
     }
     console.log(`Joining room with code: ${roomCode}`);
+  }
+
+  // Define router
+  const router = {
+    push: (url) => {
+      window.location
+    }
   }
 
   return (
