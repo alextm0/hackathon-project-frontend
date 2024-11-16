@@ -2,9 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { Progress } from '@/components/ui/progress';
-import { Shield, Lock, Mail, AlertTriangle } from 'lucide-react';
 
-export default function GameRoom() {
+export default function PhisingLevel() {
   const [selectedLevel, setSelectedLevel] = useState(1);
   const [timeRemaining, setTimeRemaining] = useState(100);
   const [gameStarted, setGameStarted] = useState(false);
