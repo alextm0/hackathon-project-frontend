@@ -4,7 +4,9 @@ import { useState, useEffect } from "react";
 import { Progress } from "@/components/ui/progress";
 import { Shield, Lock, Mail, AlertTriangle } from "lucide-react";
 
-export default function GameRoom() {
+const BACKEND_URL = "http://localhost:8080";
+
+export default function GameRoom({ data }) {
   const [selectedLevel, setSelectedLevel] = useState(1);
   const [timeRemaining, setTimeRemaining] = useState(100);
   const [gameStarted, setGameStarted] = useState(false);
@@ -17,6 +19,12 @@ export default function GameRoom() {
   ];
 
   useEffect(() => {
+    console.log("Room data:", data);
+    if (data !== undefined)
+      console.log("Room data id :", data.id);
+  }, [data]);
+
+  useEffect(() => {
     let timer;
     if (gameStarted && timeRemaining > 0) {
       timer = setInterval(() => {
@@ -27,8 +35,33 @@ export default function GameRoom() {
   }, [gameStarted, timeRemaining]);
 
   const startGame = () => {
+    fetch(`${BACKEND_URL}/room/${data.id}/start`, {
+      method: "POST",
+    });
     setGameStarted(true);
     setTimeRemaining(100);
+  };
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      checkCondition();
+    }, 2000);
+
+  });
+
+  const checkCondition = async () => {
+    try {
+      console.log("Checking condition for room:", data.id);
+      const id = data.id;
+      const response = await fetch(`${BACKEND_URL}/room/${id}/start`);
+      const res = await response.json();
+      console.log("Condition data:", res.started);
+      if (res.started) {
+        startGame();
+      }
+    } catch (error) {
+      console.error("Error checking condition:", error);
+    }
   };
 
   return (
