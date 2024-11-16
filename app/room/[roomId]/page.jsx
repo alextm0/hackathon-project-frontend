@@ -34,48 +34,51 @@ const changeStateAttacker = async (roomId) => {
   return response.json();
 };
 
+const toggleAttacker = async (roomId) => {
+  const response = await fetch(`${BACKEND_URL}/room/${roomId}/attacker`, {
+    method: "PATCH"
+  });
+};
+
+const toggleDefender = async (roomId) => {
+  const response = await fetch(`${BACKEND_URL}/room/${roomId}/defender`, {
+    method: "PATCH"
+  });
+};
+
 function Room() {
   const { roomId } = useParams();
-  const [roomData, setRoomData] = useState({
-    roomCode: "",
-    attackerPresent: false,
-    defenderPresent: false,
-  });
-  const [isLoading, setIsLoading] = useState(true);
+  const [roomData, setRoomData] = useState();
+  const [attackerPresent, setAttackerPresent] = useState();
+  const [defenderPresent, setDefenderPresent] = useState();
+
+  console.log("The room id is", roomId);
 
   useEffect(() => {
-    const fetchRoomData = async () => {
-      try {
-        const data = await getRoomById(roomId);
-        setRoomData({
-          roomCode: data.id,
-          attackerPresent: data.attackerPresent,
-          defenderPresent: data.defenderPresent,
-        });
+    if (roomId) {
+      console.log("Fetching data for room ID:", roomId);
 
-        if (!data.attackerPresent && !data.defenderPresent) {
-          await changeStateAttacker(roomId);
-        } else if (data.attackerPresent && !data.defenderPresent) {
-          await changeStateDefender(roomId);
-        } else if (data.attackerPresent && data.defenderPresent) {
-          console.log("Both players are present");
+      getRoomById(roomId)
+      .then((data) => {
+        console.log("Fetched room data:", data);
+        setRoomData(data);
+
+        if (data.attackerPresent === false) {
+          console.log("Attacker is not present");
+          toggleAttacker(roomId);
+          setAttackerPresent(true);
+        } else if (data.defenderPresent === false) {
+          console.log("Defender is not present");
+          toggleDefender(roomId);
+          setDefenderPresent(true);
         }
-      } catch (error) {
-        console.error("Error fetching room data:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchRoomData();
-  }, [roomId]); // Removed roomData dependencies to prevent infinite loops
+      })
+      .catch((error) => console.error("Failed to fetch room data:", error));
+    }
+  }, [roomId]);
 
   if (!roomId) {
     return <p>Room ID not found!</p>;
-  }
-
-  if (isLoading) {
-    return <p>Loading room data...</p>;
   }
 
   return (
