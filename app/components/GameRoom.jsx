@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Progress } from "@/components/ui/progress";
 import { Shield, Lock, Mail, AlertTriangle } from "lucide-react";
+import { redirect } from "next/navigation";
 
 const BACKEND_URL = "http://localhost:8080";
 
@@ -10,6 +11,12 @@ export default function GameRoom({ data }) {
   const [selectedLevel, setSelectedLevel] = useState(1);
   const [timeRemaining, setTimeRemaining] = useState(100);
   const [gameStarted, setGameStarted] = useState(false);
+
+  const router = {
+    push: (url) => {
+      window.location
+    }
+  }
 
   const levels = [
     { id: 1, name: "Level 1" },
@@ -40,6 +47,9 @@ export default function GameRoom({ data }) {
     });
     setGameStarted(true);
     setTimeRemaining(100);
+    console.log("Game started, routing...");
+    router.push(`/room/${data.id}/phishing`);
+    redirect(`/room/${data.id}/phishing`);
   };
 
   useEffect(() => {
