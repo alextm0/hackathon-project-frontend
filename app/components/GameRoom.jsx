@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { Progress } from '@/components/ui/progress';
-import { Shield, Lock, Mail, AlertTriangle } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { Progress } from "@/components/ui/progress";
+import { Shield, Lock, Mail, AlertTriangle } from "lucide-react";
 
 export default function GameRoom() {
   const [selectedLevel, setSelectedLevel] = useState(1);
@@ -10,10 +10,10 @@ export default function GameRoom() {
   const [gameStarted, setGameStarted] = useState(false);
 
   const levels = [
-    { id: 1, name: 'Level 1'},
-    { id: 2, name: 'Level 2'},
-    { id: 3, name: 'Level 3' },
-    { id: 4, name: 'Level 4'},
+    { id: 1, name: "Level 1" },
+    { id: 2, name: "Level 2" },
+    { id: 3, name: "Level 3" },
+    { id: 4, name: "Level 4" },
   ];
 
   useEffect(() => {
@@ -34,20 +34,35 @@ export default function GameRoom() {
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100 p-6">
       <div className="mb-8 flex justify-between items-start">
-        <div className="space-y-2">
-          <div className="text-sm">Agent Smith: 100p</div>
-          <div className="text-sm">Agent Johnson: 532p</div>
+        <div className="w-48 space-y-2 bg-gray-800 p-4 rounded-lg shadow-lg border border-green-500">
+          <h3 className="text-lg font-bold text-green-500 mb-2">
+            Agent Scores
+          </h3>
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-semibold text-gray-300">
+              Agent Smith:
+            </span>
+            <span className="text-sm font-semibold text-green-400">100p</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-semibold text-gray-300">
+              Agent Johnson:
+            </span>
+            <span className="text-sm font-semibold text-green-400">532p</span>
+          </div>
         </div>
+
         <div className="w-48">
-          <Progress
-            value={timeRemaining}
-            className="h-4 bg-gray-700"
-          />
-          <div className="text-xs text-right mt-1">Time Remaining: {timeRemaining}s</div>
+          <Progress value={timeRemaining} className="h-4 bg-gray-700" />
+          <div className="text-xs text-right mt-1">
+            Time Remaining: {timeRemaining}s
+          </div>
         </div>
       </div>
 
-      <h1 className="text-2xl text-center mb-6 text-green-500 font-bold">Phishing Defense Simulator</h1>
+      <h1 className="text-2xl text-center mb-6 text-green-500 font-bold">
+        Cybersecurity Coding Contest
+      </h1>
 
       <div className="flex gap-6">
         {/* Levels Sidebar */}
@@ -58,8 +73,8 @@ export default function GameRoom() {
               onClick={() => setSelectedLevel(level.id)}
               className={`w-full py-2 px-4 rounded text-center transition-colors flex items-center justify-center space-x-2 ${
                 selectedLevel === level.id
-                  ? 'bg-green-600 text-white'
-                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                  ? "bg-green-600 text-white"
+                  : "bg-gray-700 text-gray-300 hover:bg-gray-600"
               }`}
             >
               {/* {React.createElement(level.icon, { className: 'w-4 h-4' })} Fixed icon rendering */}
@@ -73,7 +88,9 @@ export default function GameRoom() {
           {!gameStarted ? (
             <div className="text-center">
               <h2 className="text-xl mb-4">Welcome, Cyber Agent!</h2>
-              <p className="mb-4">Your mission: Identify and neutralize phishing threats.</p>
+              <p className="mb-4">
+                Your mission: Identify and neutralize phishing threats.
+              </p>
               <button
                 onClick={startGame}
                 className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded transition-colors"
@@ -83,11 +100,17 @@ export default function GameRoom() {
             </div>
           ) : (
             <div className="text-center">
-              <h2 className="text-xl mb-4">Level {selectedLevel}: {levels[selectedLevel - 1].name}</h2>
-              <p className="mb-4">Analyze the incoming messages and identify potential threats.</p>
+              <h2 className="text-xl mb-4">
+                Level {selectedLevel}: {levels[selectedLevel - 1].name}
+              </h2>
+              <p className="mb-4">
+                Analyze the incoming messages and identify potential threats.
+              </p>
               {/* Placeholder for game content */}
               <div className="bg-gray-700 p-4 rounded-lg w-full max-w-md">
-                <p className="text-sm text-gray-300">Simulated phishing email content will appear here...</p>
+                <p className="text-sm text-gray-300">
+                  Simulated phishing email content will appear here...
+                </p>
               </div>
             </div>
           )}
