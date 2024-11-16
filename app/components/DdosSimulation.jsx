@@ -1,77 +1,166 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { Progress } from "@/components/ui/progress";
-import { Slider } from "@/components/ui/slider";
-import { Switch } from "@/components/ui/switch";
-import { Button } from "@/components/ui/button";
-import { AlertCircle, Shield, Zap } from "lucide-react";
+import React, { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { Switch } from '@/components/ui/switch';
+import { AlertCircle, Shield, Zap, Server } from 'lucide-react';
 
-export default function Component() {
+const MAX_ATTACK_STRENGTH = 100;
+const MAX_DEFENSE_STRENGTH = 80;
+const SIMULATION_DURATION = 60; // seconds
+
+export default function DDoSSimulation() {
+  const [isSimulationRunning, setIsSimulationRunning] = useState(false);
+  const [attackStrength, setAttackStrength] = useState(0);
+  const [defenseStrength, setDefenseStrength] = useState(0);
   const [serverHealth, setServerHealth] = useState(100);
-  const [attackIntensity, setAttackIntensity] = useState(0);
-  const [botCount, setBotCount] = useState(10);
-  const [isAttacking, setIsAttacking] = useState(false);
+  const [elapsedTime, setElapsedTime] = useState(0);
   const [defenses, setDefenses] = useState({
     firewall: false,
     loadBalancer: false,
     trafficFilter: false,
   });
-  const [score, setScore] = useState(0);
-  const [timeRemaining, setTimeRemaining] = useState(60);
-  const [gameOver, setGameOver] = useState(false);
+  const [eventLog, setEventLog] = useState([]);
 
-  useEffect(() => {
-    if (timeRemaining > 0 && !gameOver) {
-      const timer = setTimeout(() => setTimeRemaining((prev) => prev - 1), 1000);
-      return () => clearTimeout(timer);
-    } else if (timeRemaining === 0) {
-      setGameOver(true);
-    }
-  }, [timeRemaining, gameOver]);
-
-  useEffect(() => {
-    if (isAttacking && !gameOver) {
-      const interval = setInterval(() => {
-        const defenseStrength = Object.values(defenses).filter(Boolean).length * 20;
-        const attackStrength = (attackIntensity * botCount) / 10;
-        const damage = Math.max(0, attackStrength - defenseStrength);
-
-        setServerHealth((prev) => {
-          const newHealth = Math.max(0, prev - damage / 10);
-          if (newHealth === 0) setGameOver(true);
-          return newHealth;
-        });
-
-        setScore((prev) => prev + 1);
-      }, 1000);
-      return () => clearInterval(interval);
-    }
-  }, [isAttacking, attackIntensity, botCount, defenses, gameOver]);
-
-  const toggleDefense = (defense) => {
-    setDefenses((prev) => ({ ...prev, [defense]: !prev[defense] }));
+  const logEvent = (message) => {
+    setEventLog((prev) => [...prev, `[${elapsedTime}s] ${message}`]);
   };
 
-  const resetGame = () => {
+  const updateServerHealth = () => {
+    const damage = Math.max(0, attackStrength - defenseStrength);
+    const healthChange = Math.max(0, serverHealth - damage / 10);
+    if (healthChange < serverHealth) logEvent('Server took damage!');
+    setServerHealth(healthChange);
+  };
+
+  useEffect(() => {
+    let interval;
+    if (isSimulationRunning && elapsedTime < SIMULATION_DURATION) {
+      interval = setInterval(() => {
+        setElapsedTime((prev) => prev + 1);
+        updateServerHealth();
+
+        // Simulated attack pattern (hardcoded)
+        const timePercentage = (elapsedTime / SIMULATION_DURATION) * 100;
+        if (timePercentage < 20) {
+          setAttackStrength(20);
+        } else if (timePercentage < 40) {
+          setAttackStrength(50);
+        } else if (timePercentage < 60) {
+          setAttackStrength(80);
+        } else if (timePercentage < 80) {
+          setAttackStrength(100);
+        } else {
+          setAttackStrength(70);
+        }
+
+        // Simulated defense response (hardcoded)
+        const activeDefenses = Object.values(defenses).filter(Boolean).length;
+        setDefenseStrength(20 * activeDefenses);
+      }, 1000);
+    } else if (elapsedTime >= SIMULATION_DURATION) {
+      setIsSimulationRunning(false);
+      logEvent('Simulation ended!');
+    }
+    return () => clearInterval(interval);
+  }, [isSimulationRunning, elapsedTime, defenses]);
+
+  const toggleDefense = (defense) => {
+    setDefenses((prev) => {
+      const updated = { ...prev, [defense]: !prev[defense] };
+      logEvent(`${defense} ${updated[defense] ? 'activated' : 'deactivated'}`);
+      return updated;
+    });
+  };
+
+  const startSimulation = () => {
+    setIsSimulationRunning(true);
     setServerHealth(100);
-    setAttackIntensity(0);
-    setBotCount(10);
-    setIsAttacking(false);
+    setElapsedTime(0);
+    setEventLog([]);
+    logEvent('Simulation started!');
+  };
+
+  const resetSimulation = () => {
+    setIsSimulationRunning(false);
+    setAttackStrength(0);
+    setDefenseStrength(0);
+    setServerHealth(100);
+    setElapsedTime(0);
     setDefenses({ firewall: false, loadBalancer: false, trafficFilter: false });
-    setScore(0);
-    setTimeRemaining(60);
-    setGameOver(false);
+    setEventLog([]);
+    logEvent('Simulation reset!');
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-100 p-6">
-      <h1 className="text-2xl font-bold text-center mb-6 text-green-500">
-        DDoS Attack Simulator
-      </h1>
+    <div className="min-h-screen bg-gray-900 text-green-500 p-6 font-mono">
+      <h1 className="text-3xl font-bold mb-6 text-center">DDoS Attack Simulation</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-gray-800 p-4 rounded-lg">
+        {/* Attack Dashboard */}
+        <div className="bg-gray-800 p-4 rounded-lg border border-green-500">
+          <h2 className="text-xl mb-4">Attack Dashboard</h2>
+          <div className="space-y-4">
+            <div>
+              <div className="flex justify-between mb-2">
+                <span>Attack Strength</span>
+                <span>{attackStrength}%</span>
+              </div>
+              <Progress value={attackStrength} className="h-2 bg-gray-700 rounded">
+                <div
+                  className={`absolute h-full rounded bg-red-500 transition-all`}
+                  style={{ width: `${attackStrength}%` }}
+                />
+              </Progress>
+            </div>
+            <div className="flex items-center justify-between">
+              <span>Bots</span>
+              <div className="space-x-1">
+                {[...Array(5)].map((_, i) => (
+                  <Zap
+                    key={i}
+                    className={`inline-block w-4 h-4 ${
+                      i < attackStrength / 20 ? 'text-red-500' : 'text-gray-600'
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Defense Dashboard */}
+        <div className="bg-gray-800 p-4 rounded-lg border border-green-500">
+          <h2 className="text-xl mb-4">Defense Dashboard</h2>
+          <div className="space-y-4">
+            <div>
+              <div className="flex justify-between mb-2">
+                <span>Defense Strength</span>
+                <span>{defenseStrength}%</span>
+              </div>
+              <Progress value={defenseStrength} className="h-2 bg-gray-700 rounded">
+                <div
+                  className={`absolute h-full rounded bg-blue-500 transition-all`}
+                  style={{ width: `${defenseStrength}%` }}
+                />
+              </Progress>
+            </div>
+            {Object.entries(defenses).map(([defense, isActive]) => (
+              <div key={defense} className="flex items-center justify-between">
+                <label className="capitalize">{defense.replace(/([A-Z])/g, ' $1').trim()}</label>
+                <Switch
+                  checked={isActive}
+                  onCheckedChange={() => toggleDefense(defense)}
+                  disabled={isSimulationRunning}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Server Status */}
+        <div className="bg-gray-800 p-4 rounded-lg border border-green-500 col-span-1 md:col-span-2">
           <h2 className="text-xl mb-4">Server Status</h2>
           <div className="space-y-4">
             <div>
@@ -79,117 +168,58 @@ export default function Component() {
                 <span>Server Health</span>
                 <span>{serverHealth.toFixed(2)}%</span>
               </div>
-              <Progress value={serverHealth} className="h-2" />
+              <Progress value={serverHealth} className="h-2 bg-gray-700 rounded">
+                <div
+                  className={`absolute h-full rounded ${
+                    serverHealth > 50 ? 'bg-green-500' : 'bg-red-500'
+                  } transition-all`}
+                  style={{ width: `${serverHealth}%` }}
+                />
+              </Progress>
+            </div>
+            <div className="flex items-center justify-center">
+              <Server
+                className={`w-16 h-16 ${serverHealth > 50 ? 'text-green-500' : 'text-red-500'}`}
+              />
             </div>
             <div>
               <div className="flex justify-between mb-2">
-                <span>Time Remaining</span>
-                <span>{timeRemaining}s</span>
+                <span>Simulation Progress</span>
+                <span>{elapsedTime}/{SIMULATION_DURATION}s</span>
               </div>
-              <Progress value={(timeRemaining / 60) * 100} className="h-2" />
+              <Progress value={(elapsedTime / SIMULATION_DURATION) * 100} className="h-2" />
             </div>
-            <div>Score: {score}</div>
-          </div>
-        </div>
-
-        <div className="bg-gray-800 p-4 rounded-lg">
-          <h2 className="text-xl mb-4">Attack Controls</h2>
-          <div className="space-y-4">
-            <div>
-              <label className="block mb-2">Bot Count: {botCount}</label>
-              <Slider
-                value={[botCount]}
-                onValueChange={(value) => setBotCount(value[0])}
-                max={100}
-                step={1}
-              />
-            </div>
-            <div>
-              <label className="block mb-2">Attack Intensity: {attackIntensity}</label>
-              <Slider
-                value={[attackIntensity]}
-                onValueChange={(value) => setAttackIntensity(value[0])}
-                max={10}
-                step={1}
-              />
-            </div>
-            <Button
-              onClick={() => setIsAttacking(!isAttacking)}
-              variant={isAttacking ? "destructive" : "default"}
-              disabled={gameOver}
-            >
-              {isAttacking ? "Stop Attack" : "Start Attack"}
-            </Button>
-          </div>
-        </div>
-
-        <div className="bg-gray-800 p-4 rounded-lg">
-          <h2 className="text-xl mb-4">Defense Mechanisms</h2>
-          <div className="space-y-4">
-            {Object.entries(defenses).map(([defense, isActive]) => (
-              <div key={defense} className="flex items-center justify-between">
-                <label className="capitalize">
-                  {defense.replace(/([A-Z])/g, " $1").trim()}
-                </label>
-                <Switch
-                  checked={isActive}
-                  onCheckedChange={() => toggleDefense(defense)}
-                  disabled={gameOver}
-                />
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="bg-gray-800 p-4 rounded-lg">
-          <h2 className="text-xl mb-4">Visualization</h2>
-          <div className="h-48 bg-gray-700 relative overflow-hidden rounded-lg">
-            {Array.from({ length: botCount }).map((_, i) => (
-              <Zap
-                key={i}
-                className="absolute text-red-500"
-                style={{
-                  left: `${Math.random() * 100}%`,
-                  top: `${Math.random() * 100}%`,
-                  animation: isAttacking
-                    ? `blink 0.${10 - attackIntensity}s infinite`
-                    : "none",
-                }}
-              />
-            ))}
-            <AlertCircle
-              className={`absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 text-4xl ${
-                serverHealth < 50 ? "text-red-500" : "text-green-500"
-              }`}
-            />
-            {Object.entries(defenses).map(
-              ([defense, isActive], index) =>
-                isActive && (
-                  <Shield
-                    key={defense}
-                    className="absolute text-blue-500 text-2xl"
-                    style={{
-                      left: `${25 * (index + 1)}%`,
-                      bottom: "10%",
-                    }}
-                  />
-                )
-            )}
           </div>
         </div>
       </div>
 
-      {gameOver && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-gray-800 p-6 rounded-lg text-center">
-            <h2 className="text-2xl mb-4">Game Over</h2>
-            <div className="mb-4">Your final score: {score}</div>
-            <Button onClick={resetGame}>Play Again</Button>
-          </div>
-        </div>
-      )}
+      {/* Control Buttons */}
+      <div className="mt-6 flex justify-center space-x-4">
+        <Button
+          onClick={startSimulation}
+          disabled={isSimulationRunning}
+          className="bg-green-600 hover:bg-green-700 text-white"
+        >
+          Start Simulation
+        </Button>
+        <Button
+          onClick={resetSimulation}
+          variant="outline"
+          className="border-green-500 text-green-500 hover:bg-green-900"
+        >
+          Reset
+        </Button>
+      </div>
 
-
+      {/* Event Log */}
+      <div className="mt-8 bg-gray-800 p-4 rounded-lg border border-green-500">
+        <h2 className="text-xl font-bold mb-4">Simulation Insights</h2>
+        <ul className="list-disc pl-6 space-y-2 text-sm">
+          {eventLog.map((log, index) => (
+            <li key={index}>{log}</li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 }
