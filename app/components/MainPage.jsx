@@ -1,20 +1,33 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Shield, Users } from "lucide-react";
 
-// Assuming "Input" is a custom component, ensure it's imported correctly
-// or replace it with a native input element if necessary
+const createRoom = async () => {
+  const resp = await fetch("http://localhost:8080/room",
+      {    method: "POST",
+              headers: {
+                  "Content-Type": "application/json",
+              },
+          body: JSON.stringify({request:"Salutare!"})
+      })
+      .then( response => response.json())
+      console.log(resp["response"])
+
+  return resp;
+}
 
 function MainPageComponent() {
   const [roomCode, setRoomCode] = useState("");
 
-  function handleCreateRoom() {
-    console.log("Create room");
+  async function handleCreateRoom() {
+    const roomId = await createRoom()
+    console.log("The room id is", roomId);
+    setRoomCode(roomId)
   }
 
   function handleJoinRoom() {
-    if (roomCode.trim() === "") {
+    if (roomCode === "") {
       console.log("Enter a valid room code");
       return;
     }
@@ -66,11 +79,10 @@ function MainPageComponent() {
               <Button
                 onClick={handleJoinRoom}
                 className={`w-full py-6 text-lg ${
-                  roomCode.trim()
+                  roomCode
                     ? "bg-gray-700 hover:bg-gray-600 text-white"
                     : "bg-gray-500 text-gray-300 cursor-not-allowed"
                 } transition-colors flex items-center justify-center space-x-2`}
-                disabled={!roomCode.trim()}
               >
                 <Users className="w-6 h-6" />
                 <span>Join Secure Room</span>

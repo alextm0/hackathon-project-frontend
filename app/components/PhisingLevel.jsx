@@ -1,96 +1,173 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Progress } from '@/components/ui/progress';
+import React, { useState, useEffect } from 'react';
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { AlertCircle, CheckCircle, XCircle, Mail, Shield } from 'lucide-react';
 
-export default function PhisingLevel() {
-  const [selectedLevel, setSelectedLevel] = useState(1);
-  const [timeRemaining, setTimeRemaining] = useState(100);
-  const [gameStarted, setGameStarted] = useState(false);
+const emails = [
+  {
+    id: 1,
+    sender: "security@yourbank.com",
+    subject: "Urgent: Verify Your Account",
+    content: "Dear valued customer, we've noticed suspicious activity on your account. Click here to verify your identity immediately.",
+    isPhishing: true,
+  },
+  {
+    id: 2,
+    sender: "friend@gmail.com",
+    subject: "Check out this funny video",
+    content: "Hey! I found this hilarious video and thought you'd enjoy it. Click the link to watch!",
+    isPhishing: true,
+  },
+  {
+    id: 3,
+    sender: "newsletter@legitcompany.com",
+    subject: "Your Weekly Newsletter",
+    content: "Here's your weekly roundup of industry news and updates. No action required.",
+    isPhishing: false,
+  },
+  {
+    id: 4,
+    sender: "support@fakeamazon.com",
+    subject: "Your Amazon order",
+    content: "Your recent order has been delayed. Please log in to your account to update your shipping information.",
+    isPhishing: true,
+  },
+  {
+    id: 5,
+    sender: "hr@yourcompany.com",
+    subject: "Company Policy Update",
+    content: "Please review the attached document for important updates to our company policies.",
+    isPhishing: false,
+  },
+];
 
-  const levels = [
-    { id: 1, name: 'Level 1'},
-    { id: 2, name: 'Level 2'},
-    { id: 3, name: 'Level 3' },
-    { id: 4, name: 'Level 4'},
-  ];
+export default function PhishingLevel() {
+  const [currentEmail, setCurrentEmail] = useState(null);
+  const [score, setScore] = useState(0);
+  const [lives, setLives] = useState(3);
+  const [gameOver, setGameOver] = useState(false);
+  const [emailIndex, setEmailIndex] = useState(0);
+  const [timeRemaining, setTimeRemaining] = useState(30);
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [lastActionCorrect, setLastActionCorrect] = useState(false);
 
   useEffect(() => {
-    let timer;
-    if (gameStarted && timeRemaining > 0) {
-      timer = setInterval(() => {
-        setTimeRemaining((prev) => Math.max(prev - 1, 0));
-      }, 1000);
+    if (emailIndex < emails.length) {
+      setCurrentEmail(emails[emailIndex]);
+    } else {
+      setGameOver(true);
     }
-    return () => clearInterval(timer);
-  }, [gameStarted, timeRemaining]);
+  }, [emailIndex]);
 
-  const startGame = () => {
-    setGameStarted(true);
-    setTimeRemaining(100);
+  useEffect(() => {
+    if (timeRemaining > 0 && !gameOver) {
+      const timer = setTimeout(() => setTimeRemaining((prev) => prev - 1), 1000);
+      return () => clearTimeout(timer);
+    } else if (timeRemaining === 0) {
+      handleAnswer(true); // Treat timeout as "Report as Phishing"
+    }
+  }, [timeRemaining, gameOver], );
+
+  const handleAnswer = (reportAsPhishing) => {
+    if (currentEmail) {
+      const correct = reportAsPhishing === currentEmail.isPhishing;
+      setLastActionCorrect(correct);
+      setShowFeedback(true);
+
+      if (correct) {
+        setScore((prev) => prev + 10);
+      } else {
+        setLives((prev) => prev - 1);
+        if (lives <= 1) {
+          setGameOver(true);
+        }
+      }
+
+      setTimeout(() => {
+        setShowFeedback(false);
+        setEmailIndex((prev) => prev + 1);
+        setTimeRemaining(30);
+      }, 2000);
+    }
+  };
+
+  const resetGame = () => {
+    setScore(0);
+    setLives(3);
+    setGameOver(false);
+    setEmailIndex(0);
+    setTimeRemaining(30);
+    setShowFeedback(false);
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-100 p-6">
-      <div className="mb-8 flex justify-between items-start">
-        <div className="space-y-2">
-          <div className="text-sm">Agent Smith: 100p</div>
-          <div className="text-sm">Agent Johnson: 532p</div>
-        </div>
-        <div className="w-48">
-          <Progress
-            value={timeRemaining}
-            className="h-4 bg-gray-700"
-          />
-          <div className="text-xs text-right mt-1">Time Remaining: {timeRemaining}s</div>
-        </div>
-      </div>
+    <div className="min-h-screen bg-gray-900 text-gray-100 p-6 flex flex-col items-center">
+      <h1 className="text-3xl font-bold mb-6 text-green-500">Phishing Email Detector</h1>
 
-      <h1 className="text-2xl text-center mb-6 text-green-500 font-bold">Phishing Defense Simulator</h1>
-
-      <div className="flex gap-6">
-        {/* Levels Sidebar */}
-        <div className="w-48 bg-gray-800 p-4 rounded-lg space-y-3">
-          {levels.map((level) => (
-            <button
-              key={level.id}
-              onClick={() => setSelectedLevel(level.id)}
-              className={`w-full py-2 px-4 rounded text-center transition-colors flex items-center justify-center space-x-2 ${
-                selectedLevel === level.id
-                  ? 'bg-green-600 text-white'
-                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-              }`}
-            >
-              {/* {React.createElement(level.icon, { className: 'w-4 h-4' })} Fixed icon rendering */}
-              <span>{level.name}</span>
-            </button>
-          ))}
+      <div className="w-full max-w-2xl bg-gray-800 p-6 rounded-lg shadow-lg">
+        <div className="flex justify-between mb-4">
+          <div className="flex items-center">
+            <Shield className="text-green-500 mr-2" />
+            <span>Score: {score}</span>
+          </div>
+          <div className="flex items-center">
+            <AlertCircle className="text-red-500 mr-2" />
+            <span>Lives: {lives}</span>
+          </div>
+          <div>Time: {timeRemaining}s</div>
         </div>
 
-        {/* Main Game Area */}
-        <div className="flex-1 bg-gray-800 rounded-lg p-4 min-h-[400px] flex flex-col items-center justify-center border border-green-500">
-          {!gameStarted ? (
-            <div className="text-center">
-              <h2 className="text-xl mb-4">Welcome, Cyber Agent!</h2>
-              <p className="mb-4">Your mission: Identify and neutralize phishing threats.</p>
-              <button
-                onClick={startGame}
-                className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded transition-colors"
-              >
-                Start Mission
-              </button>
+        <Progress value={(timeRemaining / 30) * 100} className="mb-4" />
+
+        {currentEmail && !gameOver && (
+          <div className="bg-gray-700 p-4 rounded-lg mb-4">
+            <div className="flex items-center mb-2">
+              <Mail className="mr-2" />
+              <span className="font-bold">From: {currentEmail.sender}</span>
             </div>
-          ) : (
-            <div className="text-center">
-              <h2 className="text-xl mb-4">Level {selectedLevel}: {levels[selectedLevel - 1].name}</h2>
-              <p className="mb-4">Analyze the incoming messages and identify potential threats.</p>
-              {/* Placeholder for game content */}
-              <div className="bg-gray-700 p-4 rounded-lg w-full max-w-md">
-                <p className="text-sm text-gray-300">Simulated phishing email content will appear here...</p>
+            <div className="mb-2">
+              <span className="font-bold">Subject:</span> {currentEmail.subject}
+            </div>
+            <div className="border-t border-gray-600 pt-2">{currentEmail.content}</div>
+          </div>
+        )}
+
+        {!gameOver && (
+          <div className="flex justify-center space-x-4">
+            <Button onClick={() => handleAnswer(false)} className="w-1/2">
+              Seems Legitimate
+            </Button>
+            <Button onClick={() => handleAnswer(true)} variant="destructive" className="w-1/2">
+              Report as Phishing
+            </Button>
+          </div>
+        )}
+
+        {showFeedback && (
+          <div className={`mt-4 p-2 rounded-lg text-center ${lastActionCorrect ? 'bg-green-600' : 'bg-red-600'}`}>
+            {lastActionCorrect ? (
+              <div className="flex items-center justify-center">
+                <CheckCircle className="mr-2" />
+                <span>Correct! Good job identifying {currentEmail.isPhishing ? 'the phishing attempt' : 'a legitimate email'}.</span>
               </div>
-            </div>
-          )}
-        </div>
+            ) : (
+              <div className="flex items-center justify-center">
+                <XCircle className="mr-2" />
+                <span>Oops! That was {currentEmail.isPhishing ? 'a phishing attempt' : 'actually a legitimate email'}.</span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {gameOver && (
+          <div className="text-center mt-4">
+            <h2 className="text-2xl mb-4">Game Over</h2>
+            <p className="mb-4">Your final score: {score}</p>
+            <Button onClick={resetGame}>Play Again</Button>
+          </div>
+        )}
       </div>
     </div>
   );
