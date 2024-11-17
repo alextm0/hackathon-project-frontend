@@ -21,7 +21,7 @@ const initialFiles = [
   { id: '5', name: 'family_photo.jpg', type: 'file', encrypted: true, content: "Family vacation photo", score: POINTS_PER_DECRYPT },
   { id: '6', name: 'system.log', type: 'file', encrypted: false, content: "Last login: user123\nSuspicious activity detected at 03:14\nFile access pattern: QU1CK", score: 0 },
   { id: '7', name: 'notes.txt', type: 'file', encrypted: false, content: "Remember to check the hidden files! Use 'ls -a' in the terminal.", score: 0 },
-  { id: '8', name: '.secret', type: 'file', encrypted: false, content: "The brown fox jumps over the lazy dog", score: 0 },
+  { id: '8', name: '.secret', type: 'file', encrypted: false, content: "The quick brown fox jumps over the lazy dog", score: 0 },
   { id: '9', name: 'readme.md', type: 'file', encrypted: false, content: "Project codename: 7H3", score: 0 },
 ]
 
