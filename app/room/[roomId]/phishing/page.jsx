@@ -7,6 +7,7 @@ import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { AlertCircle, CheckCircle, XCircle, Mail, Shield, Flag } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
+import { useRouter } from "next/navigation";
 
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
@@ -137,6 +138,8 @@ export default function PhishingDetector({params}) {
   const [loading, setLoading] = useState(true);
   const [roomId, setRoomId] = useState("");
 
+  const router = useRouter();
+
   useEffect(() => {
     const fetchParams = async () => {
       try {
@@ -200,14 +203,8 @@ export default function PhishingDetector({params}) {
   };
 
   const resetGame = () => {
-    setScore(0);
-    setLives(3);
-    setGameOver(false);
-    setEmailIndex(0);
-    setTimeRemaining(30);
-    setShowFeedback(false);
-    setUserAnswers([]);
-    setShowResults(false);
+    fetch(`${BACKEND_URL}/room/${roomId}/reset`);
+    router.push(`/room/${roomId}`);
   };
 
   const getWinning = async () => {
@@ -222,12 +219,9 @@ export default function PhishingDetector({params}) {
       } else {
         setMessage("You lost...");
       }
-
-      setWinning(data.success);
       setLoading(false);
     } catch (error) {
       console.error("Error fetching winning:", error);
-      setWinning("Error fetching data");
       setLoading(false);
     }
   };
@@ -348,6 +342,9 @@ export default function PhishingDetector({params}) {
                   {message}
                 </p>
               )}
+              <Button onClick={resetGame} className="bg-green-600 hover:bg-green-700 text-black text-lg px-6 py-3">
+              Back to Lobby
+              </Button>
             </div>
           )}
         </div>

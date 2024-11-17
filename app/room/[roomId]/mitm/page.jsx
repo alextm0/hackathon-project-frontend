@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Network, Lock, Unlock, Terminal, AlertTriangle, CheckCircle } from 'lucide-react'
 import Timer from "../../../components/Timer"
+import { useRouter } from 'next/navigation'
 
 const INITIAL_TIME = 600 // 10 minutes in seconds
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
@@ -29,6 +30,8 @@ export default function MITMSimulation({params}) {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [roomId, setRoomId] = useState("");
+
+  const router = useRouter();
 
   useEffect(() => {
     const fetchParams = async () => {
@@ -151,14 +154,9 @@ export default function MITMSimulation({params}) {
   }
 
   const resetGame = () => {
-    setPackets(initialPackets)
-    setTimeLeft(INITIAL_TIME)
-    setGameOver(false)
-    setSelectedPacket(null)
-    setTerminalInput('')
-    setTerminalOutput(['Welcome to the MITM Defense Terminal. Type "help" for available commands.'])
-    setSecureChannelEstablished(false)
-  }
+    fetch(`${BACKEND_URL}/room/${roomId}/reset`);
+    router.push(`/room/${roomId}`);
+  };
 
   const getWinning = async () => {
     try {
@@ -272,7 +270,7 @@ export default function MITMSimulation({params}) {
               )}
             </h2>
             <Button onClick={resetGame} className="bg-green-600 hover:bg-green-700 text-black text-lg px-6 py-3">
-              Play Again
+            Back to Lobby
             </Button>
           </div>
         </div>

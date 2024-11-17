@@ -1,10 +1,11 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, use } from 'react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Folder, File, Lock, Unlock, Clock, Search, AlertTriangle, Terminal, Award } from 'lucide-react'
 import Timer from "../../../components/Timer"
+import { useRouter } from 'next/navigation'
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 const INITIAL_TIME = 300 // 5 minutes in seconds
@@ -38,6 +39,8 @@ export default function RansomwareMitigation({params}) {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [roomId, setRoomId] = useState("");
+
+  const router = useRouter();
 
   useEffect(() => {
     const fetchParams = async () => {
@@ -151,6 +154,11 @@ export default function RansomwareMitigation({params}) {
     setTerminalOutput([...terminalOutput, `$ ${command}`, output])
     setTerminalInput('')
   }
+
+  const resetGame = () => {
+    fetch(`${BACKEND_URL}/room/${roomId}/reset`);
+    router.push(`/room/${roomId}`);
+  };
 
   const getWinning = async () => {
     try {
@@ -281,6 +289,9 @@ export default function RansomwareMitigation({params}) {
                   {message}
                 </p>
               )}
+            <Button onClick={resetGame} className="bg-green-600 hover:bg-green-700 text-black text-lg px-6 py-3">
+            Back to Lobby
+            </Button>
           </div>
         </div>
       )}
