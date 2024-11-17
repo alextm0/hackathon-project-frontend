@@ -20,6 +20,7 @@ export default function GameRoom({ data }) {
   const [showPopup, setShowPopup] = useState(false); // State to control popup visibility
   const [popupMessage, setPopupMessage] = useState(""); // Message for the popup
 
+  const intervalId = useRef(null);
   const channel = new BroadcastChannel("navigation");
   const router = useRouter();
 
@@ -52,30 +53,64 @@ export default function GameRoom({ data }) {
     return () => clearInterval(timer);
   }, [gameStarted, timeRemaining]);
 
-  const startGame = async () => {
-    try {
-      const roomData = await getRoomById(data.id);
-      if (!roomData.attackerPresent || !roomData.defenderPresent) {
-        setPopupMessage("Both users must be ready to start the game.");
-        setShowPopup(true); // Show the popup
-        return;
-      }
+  const startGame = () => {
+    fetch(`${BACKEND_URL}/room/${data.id}/start`, {
+      method: "POST",
+    });
+    let targetURL;
+    switch (selectedLevel) {
+      case 1:
+        console.log("Level 1 selected");
+        targetURL = `/room/${data.id}/phishing`;
+        break;
+      case 2:
+        console.log("Level 2 selected");
+        targetURL = `/room/${data.id}/mitm`;
+        break;
+      case 3:
+        console.log("Level 3 selected");
+        targetURL = `/room/${data.id}/ransomware`;
+        break;
+      case 4:
+        console.log("Level 4 selected");
+        break;
+      default:
+        console.error("Invalid level selected");
+    }
+    clearInterval(intervalId.current);
+    setGameStarted(true);
+    setTimeRemaining(100);
+    console.log("Game started, routing...");
+    channel.postMessage({ navigateTo: targetURL , params: data.id});
+    // router.push(targetURL);
+  };
 
-      fetch(`${BACKEND_URL}/room/${data.id}/start`, { method: "POST" });
-      let targetURL;
-      switch (selectedLevel) {
-        case 1:
-          targetURL = `/room/${data.id}/phishing`;
-          break;
-        case 2:
-          targetURL = `/room/${data.id}/mitm`;
-          break;
-        default:
-          console.error("Invalid level selected");
+  useEffect(() => {
+    if (data && data.id) {
+      // Set the interval and store the ID in the ref
+      intervalId.current = setInterval(() => {
+        checkCondition();
+      }, 2000);
+    }
+  
+    // Cleanup: Clear the interval on unmount or when `data.id` changes
+    return () => {
+      if (intervalId.current) {
+        clearInterval(intervalId.current);
       }
-      setGameStarted(true);
-      setTimeRemaining(100);
-      channel.postMessage({ navigateTo: targetURL, params: data.id });
+    };
+  }, [data]);
+
+  const checkCondition = async () => {
+    try {
+      console.log("Checking condition for room:", data.id);
+      const id = data.id;
+      const response = await fetch(`${BACKEND_URL}/room/${id}/start`);
+      const res = await response.json();
+      console.log("Condition data:", res.started);
+      if (res.started) {
+        startGame();
+      }
     } catch (error) {
       console.error("Error starting game:", error);
     }

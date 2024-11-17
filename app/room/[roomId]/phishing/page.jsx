@@ -132,7 +132,7 @@ export default function PhishingDetector({params}) {
   const [lastActionCorrect, setLastActionCorrect] = useState(false);
   const [userAnswers, setUserAnswers] = useState([]);
   const [showResults, setShowResults] = useState(false);
-  const [winning, setWinning] = useState(false);
+
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [roomId, setRoomId] = useState("");
@@ -213,7 +213,7 @@ export default function PhishingDetector({params}) {
       } else {
         setMessage("You lost...");
       }
-      
+
       setWinning(data.success);
       setLoading(false);
     } catch (error) {

@@ -7,7 +7,7 @@ import { Network, Lock, Unlock, Terminal, AlertTriangle, CheckCircle } from 'luc
 import Timer from "../../../components/Timer"
 
 const INITIAL_TIME = 600 // 10 minutes in seconds
-
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 const initialPackets = [
   { id: 1, from: 'Client', to: 'Server', data: 'Hello, Server!', encrypted: false, tampered: false },
   { id: 2, from: 'Server', to: 'Client', data: 'Hello, Client!', encrypted: false, tampered: true, originalData: 'Hello, Client!' },
@@ -17,7 +17,7 @@ const initialPackets = [
   { id: 6, from: 'Attacker', to: 'Client', data: 'I am the real server, send me your credentials.', encrypted: false, tampered: true, originalData: null },
 ]
 
-export default function MITMSimulation() {
+export default function MITMSimulation({params}) {
   const [packets, setPackets] = useState(initialPackets)
   const [timeLeft, setTimeLeft] = useState(INITIAL_TIME)
   const [gameOver, setGameOver] = useState(false)
@@ -26,12 +26,21 @@ export default function MITMSimulation() {
   const [terminalOutput, setTerminalOutput] = useState(['Welcome to the MITM Defense Terminal. Type "help" for available commands.'])
   const [secureChannelEstablished, setSecureChannelEstablished] = useState(false)
 
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [roomId, setRoomId] = useState("");
+
+  useEffect(() => {
+    setRoomId(params.roomId);
+  }, [params]);
+
   useEffect(() => {
     if (timeLeft > 0 && !gameOver) {
       const timer = setTimeout(() => setTimeLeft(prev => prev - 1), 1000)
       return () => clearTimeout(timer)
     } else if (timeLeft === 0) {
       setGameOver(true)
+      getWinning();
     }
   }, [timeLeft, gameOver])
 
@@ -39,6 +48,7 @@ export default function MITMSimulation() {
     if (packets.every(packet => !packet.tampered) && !gameOver) {
       setSecureChannelEstablished(true)
       setGameOver(true)
+      getWinning();
     }
   }, [packets, gameOver])
 
@@ -141,6 +151,26 @@ export default function MITMSimulation() {
     setSecureChannelEstablished(false)
   }
 
+  const getWinning = async () => {
+    try {
+      const response = await fetch(`${BACKEND_URL}/room/${roomId}/score/0`, {
+        method: "PATCH",
+      });
+      const data = await response.json();
+      if (data.success === true) {
+        await new Promise(resolve => setTimeout(resolve, 10000));
+        setMessage("You won the game!");
+      } else {
+        setMessage("You lost...");
+      }
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching winning:", error);
+      setLoading(false);
+    }
+  };
+
+
   return (
     <div className="min-h-screen bg-gray-900 text-green-400 p-6 font-mono">
       <h1 className="text-4xl font-bold mb-6 text-center text-green-500">Man-in-the-Middle Attack Simulation</h1>
@@ -219,7 +249,15 @@ export default function MITMSimulation() {
           <div className="bg-gray-800 p-6 rounded-lg text-center border-2 border-green-500">
             <h2 className="text-3xl mb-4">
               {secureChannelEstablished ? (
-                <><CheckCircle className="inline-block mr-2 text-green-500" /> Secure Channel Established!</>
+                <><CheckCircle className="inline-block mr-2 text-green-500" /> Secure Channel Established!
+                {loading ? (
+                <p>Loading...</p> // Show loading text while waiting for the response
+              ) : (
+                <p className="text-xl font-bold text-green-600">
+                  {message}
+                </p>
+              )}
+              </>
               ) : (
                 <><AlertTriangle className="inline-block mr-2 text-red-500" /> Time is up! Communication compromised.</>
               )}
