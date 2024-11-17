@@ -1,18 +1,25 @@
-"use client";
-
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Progress } from "@/components/ui/progress";
-import { Shield, Lock, Mail, AlertTriangle } from "lucide-react";
-import { redirect , useRouter } from "next/navigation";
+import { AlertTriangle } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+
+const getRoomById = async (roomId) => {
+  const response = await fetch(`${BACKEND_URL}/room/${roomId}`);
+  if (!response.ok) {
+    throw new Error("Failed to fetch room data");
+  }
+  return response.json();
+};
 
 export default function GameRoom({ data }) {
   const [selectedLevel, setSelectedLevel] = useState(1);
   const [timeRemaining, setTimeRemaining] = useState(100);
   const [gameStarted, setGameStarted] = useState(false);
+  const [showPopup, setShowPopup] = useState(false); // State to control popup visibility
+  const [popupMessage, setPopupMessage] = useState(""); // Message for the popup
 
-  const intervalId = useRef(null);
   const channel = new BroadcastChannel("navigation");
   const router = useRouter();
 
@@ -25,31 +32,15 @@ export default function GameRoom({ data }) {
 
   useEffect(() => {
     const channel = new BroadcastChannel("navigation");
-    console.log("BroadcastChannel initialized"); // Debug log
-  
     const handleMessage = (message) => {
-      console.log("Message received:", message.data); // Debug log
       const { navigateTo, params } = message.data;
-
       if (message.data.navigateTo) {
-        router.push(message.data.navigateTo);
         router.push(`${navigateTo}?params=${encodeURIComponent(params)}`);
       }
     };
-  
     channel.addEventListener("message", handleMessage);
-  
-    return () => {
-      console.log("BroadcastChannel closed"); // Debug log
-      channel.close();
-    };
-  }, []);
-
-  useEffect(() => {
-    console.log("Room data:", data);
-    if (data !== undefined)
-      console.log("Room data id :", data.id);
-  }, [data]);
+    return () => channel.close();
+  });
 
   useEffect(() => {
     let timer;
@@ -61,100 +52,69 @@ export default function GameRoom({ data }) {
     return () => clearInterval(timer);
   }, [gameStarted, timeRemaining]);
 
-  const startGame = () => {
-    fetch(`${BACKEND_URL}/room/${data.id}/start`, {
-      method: "POST",
-    });
-    let targetURL;
-    switch (selectedLevel) {
-      case 1:
-        console.log("Level 1 selected");
-        targetURL = `/room/${data.id}/phishing`;
-        break;
-      case 2:
-        console.log("Level 2 selected");
-        targetURL = `/room/${data.id}/mitm`;
-        break;
-      case 3:
-        console.log("Level 3 selected");
-        break;
-      case 4:
-        console.log("Level 4 selected");
-        break;
-      default:
-        console.error("Invalid level selected");
-    }
-    clearInterval(intervalId.current);
-    setGameStarted(true);
-    setTimeRemaining(100);
-    console.log("Game started, routing...");
-    channel.postMessage({ navigateTo: targetURL , params: data.id});
-    // router.push(targetURL);
-  };
-
-  useEffect(() => {
-    if (data && data.id) {
-      // Set the interval and store the ID in the ref
-      intervalId.current = setInterval(() => {
-        checkCondition();
-      }, 2000);
-    }
-  
-    // Cleanup: Clear the interval on unmount or when `data.id` changes
-    return () => {
-      if (intervalId.current) {
-        clearInterval(intervalId.current);
-      }
-    };
-  }, [data]);
-
-  const checkCondition = async () => {
+  const startGame = async () => {
     try {
-      console.log("Checking condition for room:", data.id);
-      const id = data.id;
-      const response = await fetch(`${BACKEND_URL}/room/${id}/start`);
-      const res = await response.json();
-      console.log("Condition data:", res.started);
-      if (res.started) {
-        startGame();
+      const roomData = await getRoomById(data.id);
+      if (!roomData.attackerPresent || !roomData.defenderPresent) {
+        setPopupMessage("Both users must be ready to start the game.");
+        setShowPopup(true); // Show the popup
+        return;
       }
+
+      fetch(`${BACKEND_URL}/room/${data.id}/start`, { method: "POST" });
+      let targetURL;
+      switch (selectedLevel) {
+        case 1:
+          targetURL = `/room/${data.id}/phishing`;
+          break;
+        case 2:
+          targetURL = `/room/${data.id}/mitm`;
+          break;
+        default:
+          console.error("Invalid level selected");
+      }
+      setGameStarted(true);
+      setTimeRemaining(100);
+      channel.postMessage({ navigateTo: targetURL, params: data.id });
     } catch (error) {
-      console.error("Error checking condition:", error);
+      console.error("Error starting game:", error);
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100 p-6">
+      {/* Popup */}
+      {showPopup && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-gray-800 p-6 rounded-lg text-center border border-red-500">
+            <AlertTriangle className="text-red-500 w-12 h-12 mx-auto mb-4" />
+            <h2 className="text-xl font-bold text-red-500 mb-4">Alert</h2>
+            <p className="text-gray-300 mb-4">{popupMessage}</p>
+            <button
+              onClick={() => setShowPopup(false)}
+              className="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="mb-8 flex justify-between items-start">
         <div className="w-48 space-y-2 bg-gray-800 p-4 rounded-lg shadow-lg border border-green-500">
-          <h3 className="text-lg font-bold text-green-500 mb-2">
-            Agent Scores
-          </h3>
+          <h3 className="text-lg font-bold text-green-500 mb-2">Agent Scores</h3>
           <div className="flex items-center justify-between">
-            <span className="text-sm font-semibold text-gray-300">
-              Agent Smith:
-            </span>
+            <span className="text-sm font-semibold text-gray-300">Agent Smith:</span>
             <span className="text-sm font-semibold text-green-400">100p</span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-sm font-semibold text-gray-300">
-              Agent Johnson:
-            </span>
+            <span className="text-sm font-semibold text-gray-300">Agent Johnson:</span>
             <span className="text-sm font-semibold text-green-400">532p</span>
-          </div>
-        </div>
-
-        <div className="w-48">
-          <Progress value={timeRemaining} className="h-4 bg-gray-700" />
-          <div className="text-xs text-right mt-1">
-            Time Remaining: {timeRemaining}s
           </div>
         </div>
       </div>
 
-      <h1 className="text-2xl text-center mb-6 text-green-500 font-bold">
-        Cybersecurity Coding Contest
-      </h1>
+      <h1 className="text-2xl text-center mb-6 text-green-500 font-bold">Cybersecurity Coding Contest</h1>
 
       <div className="flex gap-6">
         {/* Levels Sidebar */}
@@ -169,7 +129,6 @@ export default function GameRoom({ data }) {
                   : "bg-gray-700 text-gray-300 hover:bg-gray-600"
               }`}
             >
-              {/* {React.createElement(level.icon, { className: 'w-4 h-4' })} Fixed icon rendering */}
               <span>{level.name}</span>
             </button>
           ))}
@@ -180,9 +139,7 @@ export default function GameRoom({ data }) {
           {!gameStarted ? (
             <div className="text-center">
               <h2 className="text-xl mb-4">Welcome, Cyber Agent!</h2>
-              <p className="mb-4">
-                Your mission: Identify and neutralize phishing threats.
-              </p>
+              <p className="mb-4">Your mission: Identify and neutralize phishing threats.</p>
               <button
                 onClick={startGame}
                 className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded transition-colors"
@@ -192,17 +149,11 @@ export default function GameRoom({ data }) {
             </div>
           ) : (
             <div className="text-center">
-              <h2 className="text-xl mb-4">
-                Level {selectedLevel}: {levels[selectedLevel - 1].name}
-              </h2>
-              <p className="mb-4">
-                Analyze the incoming messages and identify potential threats.
-              </p>
+              <h2 className="text-xl mb-4">Level {selectedLevel}: {levels[selectedLevel - 1].name}</h2>
+              <p className="mb-4">Analyze the incoming messages and identify potential threats.</p>
               {/* Placeholder for game content */}
               <div className="bg-gray-700 p-4 rounded-lg w-full max-w-md">
-                <p className="text-sm text-gray-300">
-                  Simulated phishing email content will appear here...
-                </p>
+                <p className="text-sm text-gray-300">Simulated phishing email content will appear here...</p>
               </div>
             </div>
           )}

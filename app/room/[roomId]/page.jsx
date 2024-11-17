@@ -83,7 +83,7 @@ function Room() {
 
   return (
     <div>
-      <h1>Room ID: {roomId}</h1>
+      {/* <h1>Room ID: {roomId}</h1> */}
       <GameRoom data={roomData} />
     </div>
   );
