@@ -15,10 +15,27 @@ export default function GameRoom({ data }) {
   const router = useRouter();
 
   const levels = [
-    { id: 1, name: "Level 1" },
-    { id: 2, name: "Level 2" },
-    { id: 3, name: "Level 3" },
-    { id: 4, name: "Level 4" },
+    { id: 1, name: "Phishing Awareness", icon: "🛡️" },
+    { id: 2, name: "Man-in-the-Middle Defense", icon: "🔒" },
+    { id: 3, name: "Ransomware Recovery", icon: "💾" },
+    {
+      id: 4,
+      name: "Advanced Threat Analysis (Premium)",
+      locked: true,
+      icon: "",
+    },
+    {
+      id: 5,
+      name: "Advanced Threat Analysis (Premium)",
+      locked: true,
+      icon: "",
+    },
+    {
+      id: 6,
+      name: "Advanced Threat Analysis (Premium)",
+      locked: true,
+      icon: "",
+    },
   ];
 
   useEffect(() => {
@@ -42,7 +59,6 @@ export default function GameRoom({ data }) {
     return () => clearInterval(timer);
   }, [gameStarted, timeRemaining]);
 
-
   const getRoomStarted = async () => {
     try {
       const response = await fetch(`${BACKEND_URL}/room/${data.id}/start`);
@@ -51,7 +67,7 @@ export default function GameRoom({ data }) {
     } catch (error) {
       console.error("Error getting room started:", error);
     }
-  }
+  };
 
   const startGame = async () => {
     const res1 = await getRoomStarted(); // Await the promise to resolve
@@ -88,7 +104,7 @@ export default function GameRoom({ data }) {
     setGameStarted(true);
     setTimeRemaining(100);
     console.log("Game started, routing...");
-    channel.postMessage({ navigateTo: targetURL , params: data.id});
+    channel.postMessage({ navigateTo: targetURL, params: data.id });
     // router.push(targetURL);
   };
 
@@ -99,7 +115,7 @@ export default function GameRoom({ data }) {
         checkCondition();
       }, 2000);
     }
-  
+
     // Cleanup: Clear the interval on unmount or when `data.id` changes
     return () => {
       if (intervalId.current) {
@@ -125,37 +141,50 @@ export default function GameRoom({ data }) {
 
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100 p-6">
-      
       <div className="mb-8 flex justify-between items-start">
         <div className="w-48 space-y-2 bg-gray-800 p-4 rounded-lg shadow-lg border border-green-500">
-          <h3 className="text-lg font-bold text-green-500 mb-2">Agent Scores</h3>
+          <h3 className="text-lg font-bold text-green-500 mb-2">
+            Agent Scores
+          </h3>
           <div className="flex items-center justify-between">
-            <span className="text-sm font-semibold text-gray-300">Agent Smith:</span>
-            <span className="text-sm font-semibold text-green-400">100p</span>
+            <span className="text-sm font-semibold text-gray-300">Me:</span>
+            <span className="text-sm font-semibold text-green-400">0p</span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-sm font-semibold text-gray-300">Agent Johnson:</span>
-            <span className="text-sm font-semibold text-green-400">532p</span>
+            <span className="text-sm font-semibold text-gray-300">
+              Opponent:
+            </span>
+            <span className="text-sm font-semibold text-green-400">0p</span>
           </div>
         </div>
       </div>
 
-      <h1 className="text-2xl text-center mb-6 text-green-500 font-bold">Cybersecurity Coding Contest</h1>
+      <h1 className="text-2xl text-center mb-6 text-green-500 font-bold">
+        Cybersecurity Coding Contest
+      </h1>
 
       <div className="flex gap-6">
-        {/* Levels Sidebar */}
-        <div className="w-48 bg-gray-800 p-4 rounded-lg space-y-3">
+        <div className="w-72 bg-gray-800 p-4 rounded-lg space-y-3">
           {levels.map((level) => (
             <button
               key={level.id}
-              onClick={() => setSelectedLevel(level.id)}
+              onClick={() => {
+                if (level.locked) {
+                  alert("This level requires a premium subscription.");
+                } else {
+                  setSelectedLevel(level.id);
+                }
+              }}
               className={`w-full py-2 px-4 rounded text-center transition-colors flex items-center justify-center space-x-2 ${
                 selectedLevel === level.id
                   ? "bg-green-600 text-white"
                   : "bg-gray-700 text-gray-300 hover:bg-gray-600"
-              }`}
+              } ${level.locked ? "cursor-not-allowed opacity-50" : ""}`}
+              disabled={level.locked}
             >
+              <span className="text-xl">{level.icon}</span>
               <span>{level.name}</span>
+              {level.locked && <span className="ml-2 text-red-500">🔒</span>}
             </button>
           ))}
         </div>
@@ -165,7 +194,9 @@ export default function GameRoom({ data }) {
           {!gameStarted ? (
             <div className="text-center">
               <h2 className="text-xl mb-4">Welcome, Cyber Agent!</h2>
-              <p className="mb-4">Your mission: Identify and neutralize phishing threats.</p>
+              <p className="mb-4">
+                Your mission: Identify and neutralize malware threats.
+              </p>
               <button
                 onClick={startGame}
                 className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded transition-colors"
@@ -175,11 +206,17 @@ export default function GameRoom({ data }) {
             </div>
           ) : (
             <div className="text-center">
-              <h2 className="text-xl mb-4">Level {selectedLevel}: {levels[selectedLevel - 1].name}</h2>
-              <p className="mb-4">Analyze the incoming messages and identify potential threats.</p>
+              <h2 className="text-xl mb-4">
+                Level {selectedLevel}: {levels[selectedLevel - 1].name}
+              </h2>
+              <p className="mb-4">
+                Analyze the incoming messages and identify potential threats.
+              </p>
               {/* Placeholder for game content */}
               <div className="bg-gray-700 p-4 rounded-lg w-full max-w-md">
-                <p className="text-sm text-gray-300">Simulated phishing email content will appear here...</p>
+                <p className="text-sm text-gray-300">
+                  Simulated phishing email content will appear here...
+                </p>
               </div>
             </div>
           )}
