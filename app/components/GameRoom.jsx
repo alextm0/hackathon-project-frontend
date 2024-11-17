@@ -42,12 +42,30 @@ export default function GameRoom({ data }) {
     return () => clearInterval(timer);
   }, [gameStarted, timeRemaining]);
 
-  const startGame = () => {
-    fetch(`${BACKEND_URL}/room/${data.id}/start`, {
-      method: "POST",
-    });
+
+  const getRoomStarted = async () => {
+    try {
+      const response = await fetch(`${BACKEND_URL}/room/${data.id}/start`);
+      const res = await response.json();
+      return res;
+    } catch (error) {
+      console.error("Error getting room started:", error);
+    }
+  }
+
+  const startGame = async () => {
+    const res1 = await getRoomStarted(); // Await the promise to resolve
+    if (!res1?.started) {
+      await fetch(`${BACKEND_URL}/room/${data.id}/start/${selectedLevel}`, {
+        method: "POST",
+      });
+    }
+
+    const res = await getRoomStarted(); // Await the promise to resolve
+    console.log("Starting game for room:", res);
+
     let targetURL;
-    switch (selectedLevel) {
+    switch (res.level) {
       case 1:
         console.log("Level 1 selected");
         targetURL = `/room/${data.id}/phishing`;

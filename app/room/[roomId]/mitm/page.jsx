@@ -31,7 +31,16 @@ export default function MITMSimulation({params}) {
   const [roomId, setRoomId] = useState("");
 
   useEffect(() => {
-    setRoomId(params.roomId);
+    const fetchParams = async () => {
+      try {
+        const resolvedParams = await params; // Await the promise
+        setRoomId(resolvedParams.roomId); // Use the resolved value
+      } catch (error) {
+        console.error("Error resolving params:", error);
+      }
+    };
+  
+    fetchParams(); // Call the async function inside the useEffect
   }, [params]);
 
   useEffect(() => {
