@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, use } from "react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
@@ -8,6 +8,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { AlertCircle, CheckCircle, XCircle, Mail, Shield, Flag } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
 
+
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 const newMails = [
   {
     "sender": "john.doe@example.com",
@@ -56,70 +58,70 @@ const newMails = [
     "subject": "Conggratulations!",
     "body": "you Have just been selected as the winner of our giveaaway: A promo code for 80% off on youur next Order!. Redeem it here: https://giveaway_reward@emag.com.",
     "phish_reason": "Poor grammar, suspicious activity"
-  },
-  {
-    "sender": "support@banksecure.com",
-    "subject": "Urgent: Your Account is on Hold",
-    "body": "Dear user, We have detected suspicious activity on your account. Please click here immediately to verify your identity: https://verifyaccount_bank.com.",
-    "phish_reason": "Urgent tone, suspicious link, generic greeting"
-  },
-  {
-    "sender": "deals@electromart.com",
-    "subject": "Congratulations! You Won a Free iPhone!",
-    "body": "You are the lucky winner of our iPhone giveaway! Click here to claim your prize: http://iphone_giveaway.com.",
-    "phish_reason": "Too good to be true, suspicious link"
-  },
-  {
-    "sender": "info@legittravel.com",
-    "subject": "Enjoy 10% off Your Next Vacation Booking",
-    "body": "Dear valued customer, As a thank you for being with us, enjoy 10% off on your next booking with code TRAVEL10. Redeem here: https://legittravel.com/offers.",
-    "phish_reason": ""
-  },
-  {
-    "sender": "admin@securityalert-mail.com",
-    "subject": "Immediate Action Required: Account Breach Detected",
-    "body": "We have noticed unusual login attempts on your account. To protect your data, click the link to secure your account: https://account-protect@secure-mail.com.",
-    "phish_reason": "Scare tactics, suspicious link, generic sender"
-  },
-  {
-    "sender": "deals@fashionhub.com",
-    "subject": "Exclusive Offer: 50% Off for a Limited Time!",
-    "body": "Shop now and enjoy a 50% discount on all our items. No gimmicks, just use the code FALL50 at checkout: https://fashionhub.com/shop.",
-    "phish_reason": ""
-  },
-  {
-    "sender": "rewards@winbigprizes.com",
-    "subject": "You’ve Won Big! Claim Your $1000 Gift Card Now",
-    "body": "Click here to claim your $1000 gift card: http://winbigprizes-gift.com. Hurry, time is running out!",
-    "phish_reason": "Excessive urgency, suspicious link"
-  },
-  {
-    "sender": "customer-care@onlinebank.com",
-    "subject": "Verify Your Account Now or It Will Be Suspended",
-    "body": "Dear user, We noticed suspicious activity in your account. Please verify your details immediately to prevent suspension: https://onlinebank-verify.com.",
-    "phish_reason": "Urgent tone, generic greeting, fake link"
-  },
-  {
-    "sender": "promotions@electronicsworld.com",
-    "subject": "Flash Sale: 30% Off on All Electronics",
-    "body": "Don’t miss our limited-time offer! Enjoy 30% off sitewide. Use the promo code TECH30 at checkout: https://electronicsworld.com.",
-    "phish_reason": ""
-  },
-  {
-    "sender": "noreply@winnersclub.com",
-    "subject": "You Have Won A Free Vacation! Confirm Now",
-    "body": "Congratulations! You've won a free vacation. Click here to book your trip: http://winnersclub-freevacation.com.",
-    "phish_reason": "Unbelievable offer, suspicious link"
-  },
-  {
-    "sender": "offers@beautyco.com",
-    "subject": "Beauty Sale! 25% Off All Skincare Products",
-    "body": "Shop your favorite skincare items at a discount. Use code BEAUTY25 to save: https://beautyco.com/shop.",
-    "phish_reason": ""
   }
+  // {
+  //   "sender": "support@banksecure.com",
+  //   "subject": "Urgent: Your Account is on Hold",
+  //   "body": "Dear user, We have detected suspicious activity on your account. Please click here immediately to verify your identity: https://verifyaccount_bank.com.",
+  //   "phish_reason": "Urgent tone, suspicious link, generic greeting"
+  // },
+  // {
+  //   "sender": "deals@electromart.com",
+  //   "subject": "Congratulations! You Won a Free iPhone!",
+  //   "body": "You are the lucky winner of our iPhone giveaway! Click here to claim your prize: http://iphone_giveaway.com.",
+  //   "phish_reason": "Too good to be true, suspicious link"
+  // },
+  // {
+  //   "sender": "info@legittravel.com",
+  //   "subject": "Enjoy 10% off Your Next Vacation Booking",
+  //   "body": "Dear valued customer, As a thank you for being with us, enjoy 10% off on your next booking with code TRAVEL10. Redeem here: https://legittravel.com/offers.",
+  //   "phish_reason": ""
+  // },
+  // {
+  //   "sender": "admin@securityalert-mail.com",
+  //   "subject": "Immediate Action Required: Account Breach Detected",
+  //   "body": "We have noticed unusual login attempts on your account. To protect your data, click the link to secure your account: https://account-protect@secure-mail.com.",
+  //   "phish_reason": "Scare tactics, suspicious link, generic sender"
+  // },
+  // {
+  //   "sender": "deals@fashionhub.com",
+  //   "subject": "Exclusive Offer: 50% Off for a Limited Time!",
+  //   "body": "Shop now and enjoy a 50% discount on all our items. No gimmicks, just use the code FALL50 at checkout: https://fashionhub.com/shop.",
+  //   "phish_reason": ""
+  // },
+  // {
+  //   "sender": "rewards@winbigprizes.com",
+  //   "subject": "You’ve Won Big! Claim Your $1000 Gift Card Now",
+  //   "body": "Click here to claim your $1000 gift card: http://winbigprizes-gift.com. Hurry, time is running out!",
+  //   "phish_reason": "Excessive urgency, suspicious link"
+  // },
+  // {
+  //   "sender": "customer-care@onlinebank.com",
+  //   "subject": "Verify Your Account Now or It Will Be Suspended",
+  //   "body": "Dear user, We noticed suspicious activity in your account. Please verify your details immediately to prevent suspension: https://onlinebank-verify.com.",
+  //   "phish_reason": "Urgent tone, generic greeting, fake link"
+  // },
+  // {
+  //   "sender": "promotions@electronicsworld.com",
+  //   "subject": "Flash Sale: 30% Off on All Electronics",
+  //   "body": "Don’t miss our limited-time offer! Enjoy 30% off sitewide. Use the promo code TECH30 at checkout: https://electronicsworld.com.",
+  //   "phish_reason": ""
+  // },
+  // {
+  //   "sender": "noreply@winnersclub.com",
+  //   "subject": "You Have Won A Free Vacation! Confirm Now",
+  //   "body": "Congratulations! You've won a free vacation. Click here to book your trip: http://winnersclub-freevacation.com.",
+  //   "phish_reason": "Unbelievable offer, suspicious link"
+  // },
+  // {
+  //   "sender": "offers@beautyco.com",
+  //   "subject": "Beauty Sale! 25% Off All Skincare Products",
+  //   "body": "Shop your favorite skincare items at a discount. Use code BEAUTY25 to save: https://beautyco.com/shop.",
+  //   "phish_reason": ""
+  // }
 ]
 
-export default function PhishingDetector() {
+export default function PhishingDetector({params}) {
   const [currentEmail, setCurrentEmail] = useState(null);
   const [score, setScore] = useState(0);
   const [lives, setLives] = useState(3);
@@ -130,6 +132,14 @@ export default function PhishingDetector() {
   const [lastActionCorrect, setLastActionCorrect] = useState(false);
   const [userAnswers, setUserAnswers] = useState([]);
   const [showResults, setShowResults] = useState(false);
+  const [winning, setWinning] = useState(false);
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [roomId, setRoomId] = useState("");
+
+  useEffect(() => {
+    setRoomId(params.roomId);
+  }, [params]);
 
   useEffect(() => {
     if (emailIndex < newMails.length) {
@@ -137,6 +147,7 @@ export default function PhishingDetector() {
     } else {
       setGameOver(true);
       setShowResults(true);
+      getWinning();
     }
   }, [emailIndex]);
 
@@ -162,6 +173,7 @@ export default function PhishingDetector() {
         if (lives <= 1) {
           setGameOver(true);
           setShowResults(true);
+          getWinning();
         }
       }
 
@@ -187,6 +199,27 @@ export default function PhishingDetector() {
     setShowFeedback(false);
     setUserAnswers([]);
     setShowResults(false);
+  };
+
+  const getWinning = async () => {
+    try {
+      const response = await fetch(`${BACKEND_URL}/room/${roomId}/score/0`, {
+        method: "PATCH",
+      });
+      const data = await response.json();
+      if (data.success === true) {
+        await new Promise(resolve => setTimeout(resolve, 10000));
+        setMessage("You won the game!");
+      } else {
+        setMessage("You lost...");
+      }
+      setWinning(data.success);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching winning:", error);
+      setWinning("Error fetching data");
+      setLoading(false);
+    }
   };
 
   return (
@@ -298,12 +331,13 @@ export default function PhishingDetector() {
             <div className="text-center mt-4">
               <h2 className="text-2xl font-bold mb-4">Game Over</h2>
               <p className="text-xl mb-4">Your final score: {score}</p>
-              <Button
-                onClick={resetGame}
-                className="bg-green-600 hover:bg-green-700"
-              >
-                Play Again
-              </Button>
+              {loading ? (
+                <p>Loading...</p> // Show loading text while waiting for the response
+              ) : (
+                <p className="text-xl font-bold text-green-600">
+                  {message}
+                </p>
+              )}
             </div>
           )}
         </div>

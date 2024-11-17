@@ -4,7 +4,7 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import GameRoom from "../../components/GameRoom";
 
-const BACKEND_URL = "http://localhost:8080";
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 const getRoomById = async (roomId) => {
   const response = await fetch(`${BACKEND_URL}/room/${roomId}`);

@@ -4,8 +4,10 @@ import React, { useEffect, useState } from "react";
 import { Shield, Users } from "lucide-react";
 import { redirect } from "next/navigation";
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+
 const createRoom = async () => {
-  const resp = await fetch("http://localhost:8080/room",
+  const resp = await fetch(`${BACKEND_URL}/room`,
       {    method: "POST",
               headers: {
                   "Content-Type": "application/json",
