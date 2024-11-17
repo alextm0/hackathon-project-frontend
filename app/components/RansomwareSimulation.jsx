@@ -3,23 +3,24 @@
 import React, { useState, useEffect } from 'react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Progress } from "@/components/ui/progress"
-import { Folder, File, Lock, Unlock, Clock, Search, AlertTriangle, Terminal } from 'lucide-react'
+import { Folder, File, Lock, Unlock, Clock, Search, AlertTriangle, Terminal, Award } from 'lucide-react'
 import Timer from '../components/Timer'
 
-const INITIAL_TIME = 300 // 10 minutes in seconds
+const INITIAL_TIME = 300 // 5 minutes in seconds
 const DECRYPTION_KEY = "7H3_QU1CK_BR0WN_F0X"
+const POINTS_PER_DECRYPT = 100
+const TIME_BONUS_MULTIPLIER = 10
 
 const initialFiles = [
-  { id: '1', name: 'documents', type: 'folder', encrypted: false, content: [] },
-  { id: '2', name: 'pictures', type: 'folder', encrypted: false, content: [] },
-  { id: '3', name: 'important.docx', type: 'file', encrypted: true, content: "This file contains sensitive information." },
-  { id: '4', name: 'budget.xlsx', type: 'file', encrypted: true, content: "Financial projections for Q3" },
-  { id: '5', name: 'family_photo.jpg', type: 'file', encrypted: true, content: "Family vacation photo" },
-  { id: '6', name: 'system.log', type: 'file', encrypted: false, content: "Last login: user123\nSuspicious activity detected at 03:14\nFile access pattern: QU1CK" },
-  { id: '7', name: 'notes.txt', type: 'file', encrypted: false, content: "Remember to check the hidden files! Use 'ls -a' in the terminal." },
-  { id: '8', name: '.secret', type: 'file', encrypted: false, content: "The brown fox jumps over the lazy dog" },
-  { id: '9', name: 'readme.md', type: 'file', encrypted: false, content: "Project codename: 7H3" },
+  { id: '1', name: 'documents', type: 'folder', encrypted: false, content: [], score: 0 },
+  { id: '2', name: 'pictures', type: 'folder', encrypted: false, content: [], score: 0 },
+  { id: '3', name: 'important.docx', type: 'file', encrypted: true, content: "This file contains sensitive information.", score: POINTS_PER_DECRYPT },
+  { id: '4', name: 'budget.xlsx', type: 'file', encrypted: true, content: "Financial projections for Q3", score: POINTS_PER_DECRYPT },
+  { id: '5', name: 'family_photo.jpg', type: 'file', encrypted: true, content: "Family vacation photo", score: POINTS_PER_DECRYPT },
+  { id: '6', name: 'system.log', type: 'file', encrypted: false, content: "Last login: user123\nSuspicious activity detected at 03:14\nFile access pattern: QU1CK", score: 0 },
+  { id: '7', name: 'notes.txt', type: 'file', encrypted: false, content: "Remember to check the hidden files! Use 'ls -a' in the terminal.", score: 0 },
+  { id: '8', name: '.secret', type: 'file', encrypted: false, content: "The brown fox jumps over the lazy dog", score: 0 },
+  { id: '9', name: 'readme.md', type: 'file', encrypted: false, content: "Project codename: 7H3", score: 0 },
 ]
 
 export default function RansomwareMitigation() {
@@ -31,19 +32,29 @@ export default function RansomwareMitigation() {
   const [selectedFile, setSelectedFile] = useState(null)
   const [terminalInput, setTerminalInput] = useState('')
   const [terminalOutput, setTerminalOutput] = useState(['Welcome to the Cybersecurity Terminal. Type "help" for available commands.'])
+  const [score, setScore] = useState(0)
 
   useEffect(() => {
     if (timeLeft > 0 && !gameOver) {
-      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000)
+      const timer = setTimeout(() => setTimeLeft(prev => prev - 1), 1000)
       return () => clearTimeout(timer)
     } else if (timeLeft === 0) {
       setGameOver(true)
     }
   }, [timeLeft, gameOver])
 
+  const calculateTotalScore = () => {
+    const fileScore = files.reduce((total, file) => total + (file.encrypted ? 0 : file.score), 0)
+    const timeBonus = timeLeft * TIME_BONUS_MULTIPLIER
+    return fileScore + timeBonus
+  }
+
   const handleDecrypt = () => {
     if (decryptionKey === DECRYPTION_KEY) {
-      setFiles(files.map(file => ({ ...file, encrypted: false })))
+      const decryptedFiles = files.map(file => ({ ...file, encrypted: false }))
+      setFiles(decryptedFiles)
+      const totalScore = calculateTotalScore()
+      setScore(totalScore)
       setGameOver(true)
       setTerminalOutput([...terminalOutput, "Decryption successful! All files have been restored."])
     } else {
@@ -121,23 +132,18 @@ export default function RansomwareMitigation() {
     setTerminalInput('')
   }
 
-  const resetGame = () => {
-    setFiles(initialFiles)
-    setCurrentDirectory('/')
-    setTimeLeft(INITIAL_TIME)
-    setDecryptionKey('')
-    setGameOver(false)
-    setSelectedFile(null)
-    setTerminalInput('')
-    setTerminalOutput(['Welcome to the Cybersecurity Terminal. Type "help" for available commands.'])
-  }
-
   return (
     <div className="min-h-screen bg-gray-900 text-green-500 p-6 font-mono">
-      <h1 className="text-4xl font-bold mb-6 text-center text-green-500 glow">Ransomware Mitigation Simulation</h1>
+      <h1 className="text-4xl font-bold mb-6 text-center text-green-500">Ransomware Mitigation Simulation</h1>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Timer timeLeft={timeLeft} initialTime={INITIAL_TIME} />
+        <div className="bg-gray-800 p-4 rounded-lg border border-green-500 flex flex-col items-center justify-center">
+          <Timer timeLeft={timeLeft} initialTime={INITIAL_TIME} />
+          <div className="mt-4 flex items-center">
+            <Award className="mr-2 text-yellow-500" />
+            <span className="text-xl">Score: {score}</span>
+          </div>
+        </div>
 
         <div className="bg-gray-800 p-4 rounded-lg border border-green-500">
           <h2 className="text-xl mb-4 flex items-center">
@@ -162,7 +168,7 @@ export default function RansomwareMitigation() {
               >
                 {file.type === 'folder' ? <Folder className="mr-2" /> : <File className="mr-2" />}
                 {file.name}
-                {file.encrypted && <Lock className="ml-auto text-red-500" />}
+                {file.encrypted ? <Lock className="ml-auto text-red-500" /> : <Unlock className="ml-auto text-green-500" />}
               </div>
             ))}
           </div>
@@ -223,14 +229,12 @@ export default function RansomwareMitigation() {
       </div>
 
       {gameOver && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-gray-800 p-6 rounded-lg text-center">
-            <h2 className="text-2xl mb-4">
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center">
+          <div className="bg-gray-800 p-6 rounded-lg text-center border-2 border-green-500">
+            <h2 className="text-3xl mb-4">
               {timeLeft > 0 ? "Congratulations! You decrypted the files!" : "Time's up! Data destroyed."}
             </h2>
-            <Button onClick={resetGame} className="bg-green-600 hover:bg-green-700 text-white">
-              Play Again
-            </Button>
+            <p className="text-2xl mb-4">Final Score: {score}</p>
           </div>
         </div>
       )}
@@ -258,6 +262,12 @@ export default function RansomwareMitigation() {
           <li>Implement network segmentation to limit the spread of ransomware.</li>
         </ul>
       </div>
+
+      <style jsx global>{`
+        .glow {
+          text-shadow: 0 0 5px #4ade80, 0 0 10px #4ade80;
+        }
+      `}</style>
     </div>
   )
 }
