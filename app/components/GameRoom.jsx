@@ -90,27 +90,27 @@ export default function GameRoom({ data }) {
     // router.push(targetURL);
   };
 
-  // useEffect(() => {
-  //   const interval = setInterval(() => {
-  //     checkCondition();
-  //   }, 2000);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      checkCondition();
+    }, 2000);
 
-  // });
+  });
 
-  // const checkCondition = async () => {
-  //   try {
-  //     console.log("Checking condition for room:", data.id);
-  //     const id = data.id;
-  //     const response = await fetch(`${BACKEND_URL}/room/${id}/start`);
-  //     const res = await response.json();
-  //     console.log("Condition data:", res.started);
-  //     if (res.started) {
-  //       startGame();
-  //     }
-  //   } catch (error) {
-  //     console.error("Error checking condition:", error);
-  //   }
-  // };
+  const checkCondition = async () => {
+    try {
+      console.log("Checking condition for room:", data.id);
+      const id = data.id;
+      const response = await fetch(`${BACKEND_URL}/room/${id}/start`);
+      const res = await response.json();
+      console.log("Condition data:", res.started);
+      if (res.started) {
+        startGame();
+      }
+    } catch (error) {
+      console.error("Error checking condition:", error);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100 p-6">
