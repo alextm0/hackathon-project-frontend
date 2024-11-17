@@ -5,20 +5,10 @@ import { useRouter } from "next/navigation";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
-const getRoomById = async (roomId) => {
-  const response = await fetch(`${BACKEND_URL}/room/${roomId}`);
-  if (!response.ok) {
-    throw new Error("Failed to fetch room data");
-  }
-  return response.json();
-};
-
 export default function GameRoom({ data }) {
   const [selectedLevel, setSelectedLevel] = useState(1);
   const [timeRemaining, setTimeRemaining] = useState(100);
   const [gameStarted, setGameStarted] = useState(false);
-  const [showPopup, setShowPopup] = useState(false);
-  const [popupMessage, setPopupMessage] = useState("");
 
   const intervalId = useRef(null);
   const channel = new BroadcastChannel("navigation");
@@ -52,14 +42,7 @@ export default function GameRoom({ data }) {
     return () => clearInterval(timer);
   }, [gameStarted, timeRemaining]);
 
-  const startGame = async () => {
-    const roomData = await getRoomById(data.id);
-    if (!roomData.attackerPresent || !roomData.defenderPresent) {
-      setPopupMessage("Both users must be ready to start the game.");
-      setShowPopup(true); // Show the popup
-      return;
-    }
-
+  const startGame = () => {
     fetch(`${BACKEND_URL}/room/${data.id}/start`, {
       method: "POST",
     });
@@ -124,23 +107,7 @@ export default function GameRoom({ data }) {
 
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100 p-6">
-      {/* Popup */}
-      {showPopup && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-gray-800 p-6 rounded-lg text-center border border-red-500">
-            <AlertTriangle className="text-red-500 w-12 h-12 mx-auto mb-4" />
-            <h2 className="text-xl font-bold text-red-500 mb-4">Alert</h2>
-            <p className="text-gray-300 mb-4">{popupMessage}</p>
-            <button
-              onClick={() => setShowPopup(false)}
-              className="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
-
+      
       <div className="mb-8 flex justify-between items-start">
         <div className="w-48 space-y-2 bg-gray-800 p-4 rounded-lg shadow-lg border border-green-500">
           <h3 className="text-lg font-bold text-green-500 mb-2">Agent Scores</h3>
