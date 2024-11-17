@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Progress } from "@/components/ui/progress";
 import { Shield, Lock, Mail, AlertTriangle } from "lucide-react";
 import { redirect , useRouter } from "next/navigation";
@@ -12,6 +12,7 @@ export default function GameRoom({ data }) {
   const [timeRemaining, setTimeRemaining] = useState(100);
   const [gameStarted, setGameStarted] = useState(false);
 
+  const intervalId = useRef(null);
   const channel = new BroadcastChannel("navigation");
   const router = useRouter();
 
@@ -72,7 +73,7 @@ export default function GameRoom({ data }) {
         break;
       case 2:
         console.log("Level 2 selected");
-        targetURL = `/room/${data.id}/phishing`;
+        targetURL = `/room/${data.id}/mitm`;
         break;
       case 3:
         console.log("Level 3 selected");
@@ -83,6 +84,7 @@ export default function GameRoom({ data }) {
       default:
         console.error("Invalid level selected");
     }
+    clearInterval(intervalId.current);
     setGameStarted(true);
     setTimeRemaining(100);
     console.log("Game started, routing...");
@@ -91,11 +93,20 @@ export default function GameRoom({ data }) {
   };
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      checkCondition();
-    }, 2000);
-
-  });
+    if (data && data.id) {
+      // Set the interval and store the ID in the ref
+      intervalId.current = setInterval(() => {
+        checkCondition();
+      }, 2000);
+    }
+  
+    // Cleanup: Clear the interval on unmount or when `data.id` changes
+    return () => {
+      if (intervalId.current) {
+        clearInterval(intervalId.current);
+      }
+    };
+  }, [data]);
 
   const checkCondition = async () => {
     try {

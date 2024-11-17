@@ -213,6 +213,7 @@ export default function PhishingDetector({params}) {
       } else {
         setMessage("You lost...");
       }
+      
       setWinning(data.success);
       setLoading(false);
     } catch (error) {
