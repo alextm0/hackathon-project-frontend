@@ -142,21 +142,19 @@ export default function GameRoom({ data }) {
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100 p-6">
       <div className="mb-8 flex justify-between items-start">
-        <div className="w-48 space-y-2 bg-gray-800 p-4 rounded-lg shadow-lg border border-green-500">
+        {/* <div className="w-48 space-y-2 bg-gray-800 p-4 rounded-lg shadow-lg border border-green-500">
           <h3 className="text-lg font-bold text-green-500 mb-2">
             Agent Scores
           </h3>
           <div className="flex items-center justify-between">
-            <span className="text-sm font-semibold text-gray-300">Me:</span>
-            <span className="text-sm font-semibold text-green-400">0p</span>
+            <span className="text-sm font-semibold text-gray-300">Me</span>
           </div>
           <div className="flex items-center justify-between">
             <span className="text-sm font-semibold text-gray-300">
-              Opponent:
+              Opponent
             </span>
-            <span className="text-sm font-semibold text-green-400">0p</span>
           </div>
-        </div>
+        </div> */}
       </div>
 
       <h1 className="text-2xl text-center mb-6 text-green-500 font-bold">
