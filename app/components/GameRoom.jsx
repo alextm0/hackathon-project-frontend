@@ -5,7 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { Shield, Lock, Mail, AlertTriangle } from "lucide-react";
 import { redirect , useRouter } from "next/navigation";
 
-const BACKEND_URL = "http://localhost:8080";
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 export default function GameRoom({ data }) {
   const [selectedLevel, setSelectedLevel] = useState(1);
@@ -28,8 +28,11 @@ export default function GameRoom({ data }) {
   
     const handleMessage = (message) => {
       console.log("Message received:", message.data); // Debug log
+      const { navigateTo, params } = message.data;
+
       if (message.data.navigateTo) {
         router.push(message.data.navigateTo);
+        router.push(`${navigateTo}?params=${encodeURIComponent(params)}`);
       }
     };
   
@@ -61,35 +64,53 @@ export default function GameRoom({ data }) {
     fetch(`${BACKEND_URL}/room/${data.id}/start`, {
       method: "POST",
     });
-    const targetURL = `/room/${data.id}/phishing`;
+    let targetURL;
+    switch (selectedLevel) {
+      case 1:
+        console.log("Level 1 selected");
+        targetURL = `/room/${data.id}/phishing`;
+        break;
+      case 2:
+        console.log("Level 2 selected");
+        targetURL = `/room/${data.id}/phishing`;
+        break;
+      case 3:
+        console.log("Level 3 selected");
+        break;
+      case 4:
+        console.log("Level 4 selected");
+        break;
+      default:
+        console.error("Invalid level selected");
+    }
     setGameStarted(true);
     setTimeRemaining(100);
     console.log("Game started, routing...");
-    channel.postMessage({ navigateTo: targetURL });
-    router.push(targetURL);
+    channel.postMessage({ navigateTo: targetURL , params: data.id});
+    // router.push(targetURL);
   };
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      checkCondition();
-    }, 2000);
+  // useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     checkCondition();
+  //   }, 2000);
 
-  });
+  // });
 
-  const checkCondition = async () => {
-    try {
-      console.log("Checking condition for room:", data.id);
-      const id = data.id;
-      const response = await fetch(`${BACKEND_URL}/room/${id}/start`);
-      const res = await response.json();
-      console.log("Condition data:", res.started);
-      if (res.started) {
-        startGame();
-      }
-    } catch (error) {
-      console.error("Error checking condition:", error);
-    }
-  };
+  // const checkCondition = async () => {
+  //   try {
+  //     console.log("Checking condition for room:", data.id);
+  //     const id = data.id;
+  //     const response = await fetch(`${BACKEND_URL}/room/${id}/start`);
+  //     const res = await response.json();
+  //     console.log("Condition data:", res.started);
+  //     if (res.started) {
+  //       startGame();
+  //     }
+  //   } catch (error) {
+  //     console.error("Error checking condition:", error);
+  //   }
+  // };
 
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100 p-6">

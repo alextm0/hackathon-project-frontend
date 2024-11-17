@@ -31,11 +31,9 @@ function MainPageComponent() {
   }
 
   function handleJoinRoom() {
-    if (roomCode === "") {
-      console.log("Enter a valid room code");
-      return;
-    }
-    console.log(`Joining room with code: ${roomCode}`);
+    console.log(`Redirecting to room with code: ${roomCode}`);
+    if(roomCode)
+      redirect(`/room/${roomCode}`);
   }
 
   // Define router

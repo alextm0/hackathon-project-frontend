@@ -1,149 +1,263 @@
-'use client';
+'use client'
 
-import React, { useState, useEffect } from 'react';
-import { AlertTriangle, Lock, Clock } from 'lucide-react';
+import React, { useState, useEffect } from 'react'
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Progress } from "@/components/ui/progress"
+import { Folder, File, Lock, Unlock, Clock, Search, AlertTriangle, Terminal } from 'lucide-react'
+import Timer from '../components/Timer'
 
-export default function RansomwareScene() {
-  const [countdown, setCountdown] = useState(3600); // 1 hour in seconds
-  const [message, setMessage] = useState('');
-  const [paidRansom, setPaidRansom] = useState(false);
-  const [decryptionAttempts, setDecryptionAttempts] = useState(0);
-  const [userInput, setUserInput] = useState('');
-  const [isDecrypted, setIsDecrypted] = useState(false);
+const INITIAL_TIME = 300 // 10 minutes in seconds
+const DECRYPTION_KEY = "7H3_QU1CK_BR0WN_F0X"
 
-  const HARD_CODED_KEY = 'DECRYPT123';
+const initialFiles = [
+  { id: '1', name: 'documents', type: 'folder', encrypted: false, content: [] },
+  { id: '2', name: 'pictures', type: 'folder', encrypted: false, content: [] },
+  { id: '3', name: 'important.docx', type: 'file', encrypted: true, content: "This file contains sensitive information." },
+  { id: '4', name: 'budget.xlsx', type: 'file', encrypted: true, content: "Financial projections for Q3" },
+  { id: '5', name: 'family_photo.jpg', type: 'file', encrypted: true, content: "Family vacation photo" },
+  { id: '6', name: 'system.log', type: 'file', encrypted: false, content: "Last login: user123\nSuspicious activity detected at 03:14\nFile access pattern: QU1CK" },
+  { id: '7', name: 'notes.txt', type: 'file', encrypted: false, content: "Remember to check the hidden files! Use 'ls -a' in the terminal." },
+  { id: '8', name: '.secret', type: 'file', encrypted: false, content: "The brown fox jumps over the lazy dog" },
+  { id: '9', name: 'readme.md', type: 'file', encrypted: false, content: "Project codename: 7H3" },
+]
+
+export default function RansomwareMitigation() {
+  const [files, setFiles] = useState(initialFiles)
+  const [currentDirectory, setCurrentDirectory] = useState('/')
+  const [timeLeft, setTimeLeft] = useState(INITIAL_TIME)
+  const [decryptionKey, setDecryptionKey] = useState('')
+  const [gameOver, setGameOver] = useState(false)
+  const [selectedFile, setSelectedFile] = useState(null)
+  const [terminalInput, setTerminalInput] = useState('')
+  const [terminalOutput, setTerminalOutput] = useState(['Welcome to the Cybersecurity Terminal. Type "help" for available commands.'])
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCountdown((prevCount) => (prevCount > 0 ? prevCount - 1 : 0));
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const formatTime = (seconds) => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const remainingSeconds = seconds % 60;
-    return `${hours.toString().padStart(2, '0')}:${minutes
-      .toString()
-      .padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
-  };
-
-  const handlePayRansom = () => {
-    setPaidRansom(true);
-    setMessage('Ransom paid! Files are still locked. The attacker took the money and disappeared.');
-  };
-
-  const handleDecryptAttempt = () => {
-    if (userInput === HARD_CODED_KEY) {
-      setIsDecrypted(true);
-      setMessage('Success! Your files have been decrypted.');
-    } else {
-      setDecryptionAttempts((prev) => prev + 1);
-      setMessage(
-        `Decryption failed. ${
-          3 - decryptionAttempts > 0
-            ? `${3 - decryptionAttempts} attempts remaining.`
-            : 'No attempts remaining.'
-        }`
-      );
+    if (timeLeft > 0 && !gameOver) {
+      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000)
+      return () => clearTimeout(timer)
+    } else if (timeLeft === 0) {
+      setGameOver(true)
     }
-  };
+  }, [timeLeft, gameOver])
+
+  const handleDecrypt = () => {
+    if (decryptionKey === DECRYPTION_KEY) {
+      setFiles(files.map(file => ({ ...file, encrypted: false })))
+      setGameOver(true)
+      setTerminalOutput([...terminalOutput, "Decryption successful! All files have been restored."])
+    } else {
+      setTerminalOutput([...terminalOutput, "Incorrect decryption key. Try again!"])
+    }
+  }
+
+  const handleFileClick = (file) => {
+    if (file.type === 'folder') {
+      setCurrentDirectory(currentDirectory === '/' ? `/${file.name}` : `${currentDirectory}/${file.name}`)
+    } else {
+      setSelectedFile(file)
+    }
+  }
+
+  const getCurrentDirectoryFiles = () => {
+    if (currentDirectory === '/') {
+      return files.filter(file => !file.name.startsWith('.'))
+    } else {
+      const folder = files.find(f => f.name === currentDirectory.slice(1))
+      return folder ? folder.content.filter(file => !file.name.startsWith('.')) : []
+    }
+  }
+
+  const handleTerminalCommand = (e) => {
+    e.preventDefault()
+    const command = terminalInput.trim().toLowerCase()
+    let output = ''
+
+    switch (command) {
+      case 'help':
+        output = "Available commands: ls, cat, cd, pwd, help"
+        break
+      case 'ls':
+        output = getCurrentDirectoryFiles().map(f => f.name).join('\n')
+        break
+      case 'ls -a':
+        output = files.map(f => f.name).join('\n')
+        break
+      case 'pwd':
+        output = currentDirectory
+        break
+      case 'cd ..':
+        if (currentDirectory !== '/') {
+          setCurrentDirectory('/')
+          output = "Changed directory to /"
+        } else {
+          output = "Already in root directory"
+        }
+        break
+      default:
+        if (command.startsWith('cat ')) {
+          const fileName = command.split(' ')[1]
+          const file = files.find(f => f.name === fileName)
+          if (file) {
+            output = file.encrypted ? "This file is encrypted." : file.content
+          } else {
+            output = "File not found"
+          }
+        } else if (command.startsWith('cd ')) {
+          const dirName = command.split(' ')[1]
+          const dir = files.find(f => f.name === dirName && f.type === 'folder')
+          if (dir) {
+            setCurrentDirectory(`/${dirName}`)
+            output = `Changed directory to /${dirName}`
+          } else {
+            output = "Directory not found"
+          }
+        } else {
+          output = "Unknown command. Type 'help' for available commands."
+        }
+    }
+
+    setTerminalOutput([...terminalOutput, `$ ${command}`, output])
+    setTerminalInput('')
+  }
+
+  const resetGame = () => {
+    setFiles(initialFiles)
+    setCurrentDirectory('/')
+    setTimeLeft(INITIAL_TIME)
+    setDecryptionKey('')
+    setGameOver(false)
+    setSelectedFile(null)
+    setTerminalInput('')
+    setTerminalOutput(['Welcome to the Cybersecurity Terminal. Type "help" for available commands.'])
+  }
 
   return (
     <div className="min-h-screen bg-gray-900 text-green-500 p-6 font-mono">
-      <h1 className="text-3xl font-bold mb-6 text-center">Ransomware Attack Simulation</h1>
+      <h1 className="text-4xl font-bold mb-6 text-center text-green-500 glow">Ransomware Mitigation Simulation</h1>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Timer timeLeft={timeLeft} initialTime={INITIAL_TIME} />
 
-      <div className="relative w-full h-[600px] bg-gray-800 rounded-lg border border-green-500 overflow-hidden">
-        {/* Computer screen */}
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-64 bg-black border-4 border-gray-700 rounded-lg overflow-hidden">
-          <div
-            className={`w-full h-full p-4 flex flex-col items-center justify-center ${
-              isDecrypted ? 'bg-green-600' : 'bg-red-600'
-            }`}
-          >
-            <AlertTriangle
-              className={`${
-                isDecrypted ? 'hidden' : 'text-yellow-300'
-              } w-16 h-16 mb-4`}
-            />
-            <h2 className="text-white text-2xl font-bold mb-2">
-              {isDecrypted
-                ? 'Files Decrypted Successfully!'
-                : 'Your Files Have Been Encrypted!'}
-            </h2>
-            {!isDecrypted && (
-              <>
-                <p className="text-white mb-4">Pay 1 BTC to unlock your files</p>
-                <div className="bg-white w-24 h-24 mb-4"></div> {/* Placeholder for QR code */}
-                <Lock className="text-white w-8 h-8" />
-              </>
+        <div className="bg-gray-800 p-4 rounded-lg border border-green-500">
+          <h2 className="text-xl mb-4 flex items-center">
+            <Search className="mr-2" />
+            File Explorer ({currentDirectory})
+          </h2>
+          <div className="space-y-2">
+            {currentDirectory !== '/' && (
+              <div
+                className="flex items-center cursor-pointer hover:bg-gray-700 p-2 rounded"
+                onClick={() => setCurrentDirectory('/')}
+              >
+                <Folder className="mr-2" />
+                ..
+              </div>
             )}
+            {getCurrentDirectoryFiles().map(file => (
+              <div
+                key={file.id}
+                className="flex items-center cursor-pointer hover:bg-gray-700 p-2 rounded"
+                onClick={() => handleFileClick(file)}
+              >
+                {file.type === 'folder' ? <Folder className="mr-2" /> : <File className="mr-2" />}
+                {file.name}
+                {file.encrypted && <Lock className="ml-auto text-red-500" />}
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* Timer */}
-        <div className="absolute top-4 right-4 bg-gray-700 rounded-full w-20 h-20 flex items-center justify-center">
-          <Clock className="text-red-500 w-16 h-16" />
+        <div className="bg-gray-800 p-4 rounded-lg border border-green-500 col-span-1 md:col-span-2">
+          <h2 className="text-xl mb-4 flex items-center">
+            <AlertTriangle className="mr-2" />
+            File Content
+          </h2>
+          {selectedFile ? (
+            selectedFile.encrypted ? (
+              <p className="text-red-500">This file is encrypted and cannot be accessed.</p>
+            ) : (
+              <p>{selectedFile.content}</p>
+            )
+          ) : (
+            <p>Select a file to view its contents.</p>
+          )}
         </div>
-        <div className="absolute top-28 right-4 text-red-500 text-xl">
-          {formatTime(countdown)}
+
+        <div className="bg-gray-800 p-4 rounded-lg border border-green-500 col-span-1 md:col-span-2">
+          <h2 className="text-xl mb-4 flex items-center">
+            <Terminal className="mr-2" />
+            Cybersecurity Terminal
+          </h2>
+          <div className="bg-black p-2 rounded h-40 overflow-y-auto mb-2">
+            {terminalOutput.map((line, index) => (
+              <p key={index}>{line}</p>
+            ))}
+          </div>
+          <form onSubmit={handleTerminalCommand} className="flex">
+            <Input
+              type="text"
+              value={terminalInput}
+              onChange={(e) => setTerminalInput(e.target.value)}
+              className="flex-grow bg-gray-900 text-green-500 border-green-500"
+              placeholder="Enter command..."
+            />
+            <Button type="submit" className="ml-2 bg-green-600 hover:bg-green-700 text-white">
+              Execute
+            </Button>
+          </form>
         </div>
       </div>
 
-      {/* Action Buttons */}
       <div className="mt-6 flex justify-center space-x-4">
-        <button
-          onClick={handlePayRansom}
-          disabled={paidRansom || isDecrypted}
-          className={`px-6 py-2 font-bold rounded ${
-            paidRansom || isDecrypted
-              ? 'bg-gray-600 cursor-not-allowed'
-              : 'bg-red-500 hover:bg-red-700'
-          }`}
-        >
-          Pay Ransom
-        </button>
-        <button
-          onClick={handleDecryptAttempt}
-          disabled={isDecrypted || decryptionAttempts >= 3}
-          className={`px-6 py-2 font-bold rounded ${
-            isDecrypted || decryptionAttempts >= 3
-              ? 'bg-gray-600 cursor-not-allowed'
-              : 'bg-blue-500 hover:bg-blue-700'
-          }`}
-        >
-          Attempt Decryption
-        </button>
-      </div>
-
-      {/* Decrypt Input */}
-      <div className="mt-6 flex flex-col items-center">
-        <input
+        <Input
           type="text"
           placeholder="Enter decryption key"
-          value={userInput}
-          onChange={(e) => setUserInput(e.target.value)}
-          className="w-64 p-2 mb-4 text-black rounded border border-gray-500"
-          disabled={isDecrypted}
+          value={decryptionKey}
+          onChange={(e) => setDecryptionKey(e.target.value)}
+          className="bg-gray-800 text-green-500 border-green-500"
         />
-        {message && (
-          <div className="p-4 bg-gray-800 text-yellow-300 rounded-lg border border-yellow-500">
-            {message}
-          </div>
-        )}
+        <Button onClick={handleDecrypt} className="bg-green-600 hover:bg-green-700 text-white">
+          Decrypt Files
+        </Button>
       </div>
 
-      <div className="mt-8 bg-gray-800 p-4 rounded-lg border border-green-500">
-        <h2 className="text-xl font-bold mb-4">Ransomware Attack Explanation</h2>
+      {gameOver && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-gray-800 p-6 rounded-lg text-center">
+            <h2 className="text-2xl mb-4">
+              {timeLeft > 0 ? "Congratulations! You decrypted the files!" : "Time's up! Data destroyed."}
+            </h2>
+            <Button onClick={resetGame} className="bg-green-600 hover:bg-green-700 text-white">
+              Play Again
+            </Button>
+          </div>
+        </div>
+      )}
+
+      <div className="mt-6 bg-gray-800 p-4 rounded-lg border border-green-500">
+        <h2 className="text-xl font-bold mb-4">Available Terminal Commands</h2>
         <ul className="list-disc pl-6 space-y-2">
-          <li>Ransomware encrypts files on a device, making them inaccessible to the user.</li>
-          <li>Attackers demand payment, often in cryptocurrency, to provide the decryption key.</li>
-          <li>A countdown timer adds pressure, threatening permanent file loss if not paid in time.</li>
-          <li>Ransomware can spread through phishing emails, infected websites, or network vulnerabilities.</li>
-          <li>Regular backups and security updates are crucial for protection against ransomware.</li>
+          <li><code>ls</code>: List visible files in the current directory</li>
+          <li><code>ls -a</code>: List all files, including hidden ones</li>
+          <li><code>cat [filename]</code>: Display the contents of a file</li>
+          <li><code>cd [directory]</code>: Change to the specified directory</li>
+          <li><code>cd ..</code>: Move up one directory level</li>
+          <li><code>pwd</code>: Print the current working directory</li>
+          <li><code>help</code>: Display available commands</li>
+        </ul>
+      </div>
+
+      <div className="mt-6 bg-gray-800 p-4 rounded-lg border border-green-500">
+        <h2 className="text-xl font-bold mb-4">Ransomware Mitigation Tips</h2>
+        <ul className="list-disc pl-6 space-y-2">
+          <li>Regularly backup your data to secure, offline locations.</li>
+          <li>Keep your operating system and software up to date.</li>
+          <li>Use robust antivirus and anti-malware software.</li>
+          <li>Be cautious when opening email attachments or clicking on links.</li>
+          <li>Implement network segmentation to limit the spread of ransomware.</li>
         </ul>
       </div>
     </div>
-  );
+  )
 }

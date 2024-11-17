@@ -8,7 +8,7 @@ import { Zap, Server } from "lucide-react";
 
 const MAX_ATTACK_STRENGTH = 100;
 const MAX_DEFENSE_STRENGTH = 80;
-const SIMULATION_DURATION = 60; // seconds
+const SIMULATION_DURATION = 60;
 
 export default function DDoSSimulation() {
   const [isSimulationRunning, setIsSimulationRunning] = useState(false);
